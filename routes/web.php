@@ -23,14 +23,18 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/customer', [CustomerController::class, 'index'])->name('customer.dashboard');
+    // return 'customer Page';
 });
 
 Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/seller', [SellerController::class, 'index'])->name('seller.dashboard');
+    // return 'seller Page';
 });
 
 Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::get('/owner', [OwnerController::class, 'index'])->name('owner.dashboard');
+
+    return 'owner Page';
 });
 
 require __DIR__.'/auth.php';

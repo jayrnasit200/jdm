@@ -27,8 +27,19 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        $user = Auth::user();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if ($user->role === 'owner') {
+            return redirect()->route('owner.dashboard');
+        } elseif ($user->role === 'seller') {
+            return redirect()->route('seller.dashboard');
+        } elseif ($user->role === 'customer') {
+            return redirect()->route('customer.dashboard');
+        }
+
+        // fallback
+        return redirect('/');
+        // return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**
@@ -50,5 +61,17 @@ class AuthenticatedSessionController extends Controller
         if ($user->isSeller()) return '/seller';
         return '/customer';
     }
-    
+    protected function authenticated(Request $request, $user)
+    {
+        switch ($user->role) {
+            case 'customer':
+                return redirect()->route('customer.dashboard');
+            case 'seller':
+                return redirect()->route('seller.dashboard');
+            case 'owner':
+                return redirect()->route('owner.dashboard');
+            default:
+                return redirect('/'); // fallback
+        }
+    }
 }
