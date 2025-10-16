@@ -5,9 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\OwnerController;
+use App\Http\Controllers\CategoryController;
 
 Route::get('/', function () {
-    return view('welcome');
+    // return view('welcome');
+    return view('under-development');
 });
 
 Route::get('/dashboard', function () {
@@ -28,6 +30,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 
 Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/seller', [SellerController::class, 'index'])->name('seller.dashboard');
+    Route::get('/customer', [CategoryController::class, 'index'])->name('Customer');
     // return 'seller Page';
 });
 
