@@ -8,6 +8,6 @@ class SellerController extends Controller
 {
     public function index()
     {
-        return view('Seller.dashboard'); // create this Blade view
+        return view('seller.dashboard'); // create this Blade view
     }
 }

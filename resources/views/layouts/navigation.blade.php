@@ -19,6 +19,11 @@
                     </a>
                 </li>
                 <!-- Add more links here if needed -->
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('customere')) active @endif" href="{{ route('customere') }}">
+                        Catogorys
+                    </a>
+                </li>
             </ul>
 
             <!-- User Dropdown -->

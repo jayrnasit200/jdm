@@ -1,0 +1,183 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="h4 mb-0">{{ __('Edit Product') }}</h2>
+    </x-slot>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+
+                        {{-- Validation Errors --}}
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        {{-- Product Form --}}
+                        <form action="{{ route('products.update') }}" method="POST" enctype="multipart/form-data">
+
+                        {{-- <form action="{{ route('products.update') }}" method="POST" enctype="multipart/form-data"> --}}
+                            @csrf
+                            @method('PUT')
+
+                            {{-- Model Number --}}
+                            <div class="mb-3">
+                                <label class="form-label">Model Number</label>
+                                <input type="text" name="model_number" class="form-control" value="{{ old('model_number', $product->model_number) }}" required>
+                            </div>
+
+                            {{-- Name --}}
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" class="form-control" value="{{ old('name', $product->name) }}" required>
+                            </div>
+
+                            {{-- Category --}}
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <select name="categories_id" class="form-control select2" required>
+                                    <option value="">-- Select Category --</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" 
+                                            {{ old('categories_id', $product->categories_id) == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Subcategory --}}
+                            <div class="mb-3">
+                                <label class="form-label">Subcategory</label>
+                                <select name="subcategories_id" class="form-control select2">
+                                    <option value="">-- Select Subcategory --</option>
+                                    @foreach($subcategories as $subcategory)
+                                        <option value="{{ $subcategory->id }}" 
+                                            {{ old('subcategories_id', $product->subcategories_id) == $subcategory->id ? 'selected' : '' }}>
+                                            {{ $subcategory->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Description --}}
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" class="form-control">{{ old('description', $product->description) }}</textarea>
+                            </div>
+
+                            {{-- Main Image --}}
+                            <div class="mb-3">
+                                <label class="form-label">Current Main Image</label>
+                                @if($product->image)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/'.$product->image) }}" alt="Main Image" class="img-thumbnail" width="120">
+                                    </div>
+                                @endif
+                                <label class="form-label">Change Main Image</label>
+                                <input type="file" name="image" class="form-control">
+                            </div>
+
+                            {{-- Back Image --}}
+                            <div class="mb-3">
+                                <label class="form-label">Current Back Image</label>
+                                @if($product->backimage)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/'.$product->backimage) }}" alt="Back Image" class="img-thumbnail" width="120">
+                                    </div>
+                                @endif
+                                <label class="form-label">Change Back Image</label>
+                                <input type="file" name="backimage" class="form-control">
+                            </div>
+
+                            {{-- Nutrition Image --}}
+                            <div class="mb-3">
+                                <label class="form-label">Current Nutrition Image</label>
+                                @if($product->nutritionimage)
+                                    <div class="mb-2">
+                                        <img src="{{ asset('storage/'.$product->nutritionimage) }}" alt="Nutrition Image" class="img-thumbnail" width="120">
+                                    </div>
+                                @endif
+                                <label class="form-label">Change Nutrition Image</label>
+                                <input type="file" name="nutritionimage" class="form-control">
+                            </div>
+
+                            {{-- Barcode --}}
+                            <div class="mb-3">
+                                <label class="form-label">Barcode</label>
+                                <input type="text" name="barcode" class="form-control" value="{{ old('barcode', $product->barcode) }}">
+                            </div>
+
+                            {{-- Price --}}
+                            <div class="mb-3">
+                                <label class="form-label">Price</label>
+                                <input type="text" name="price" class="form-control" value="{{ old('price', $product->price) }}" required>
+                            </div>
+
+                            {{-- VAT --}}
+                            <div class="mb-3">
+                                <label class="form-label">VAT</label>
+                                <select name="vat" class="form-control">
+                                    <option value="yes" {{ old('vat', $product->vat) == 'yes' ? 'selected' : '' }}>Yes</option>
+                                    <option value="no" {{ old('vat', $product->vat) == 'no' ? 'selected' : '' }}>No</option>
+                                </select>
+                            </div>
+
+                            {{-- Status --}}
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-control">
+                                    <option value="enable" {{ old('status', $product->status) == 'enable' ? 'selected' : '' }}>Enable</option>
+                                    <option value="disable" {{ old('status', $product->status) == 'disable' ? 'selected' : '' }}>Disable</option>
+                                </select>
+                            </div>
+
+                            {{-- Special Offer --}}
+                            <div class="mb-3">
+                                <label class="form-label">Special Offer</label>
+                                <select name="special_offer" class="form-control">
+                                    <option value="no" {{ old('special_offer', $product->special_offer) == 'no' ? 'selected' : '' }}>No</option>
+                                    <option value="yes" {{ old('special_offer', $product->special_offer) == 'yes' ? 'selected' : '' }}>Yes</option>
+                                </select>
+                            </div>
+
+                            {{-- Buttons --}}
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ route('products.index') }}" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Update Product</button>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Include Select2 --}}
+    @push('styles')
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    @endpush
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                $('.select2').select2({
+                    placeholder: "Select an option",
+                    allowClear: true,
+                    width: '100%'
+                });
+            });
+        </script>
+    @endpush
+
+</x-app-layout>
