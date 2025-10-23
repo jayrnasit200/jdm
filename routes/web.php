@@ -51,9 +51,10 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
     Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
-    Route::put('/products/update', [ProductController::class, 'update'])->name('products.update');
+    Route::put('/products/update/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/destroy/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
-    
+    Route::get('/get-subcategories/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
+
 });
 
 Route::middleware(['auth', 'role:owner'])->group(function () {

@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Subcategory;
-use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -67,11 +66,7 @@ public function edit($id)
 public function update(Request $request, Product $product)
 {
     $validated = $request->validate([
-        // 'model_number' => 'required|unique:products,model_number,' . $product->id,
-        'model_number' => [
-            'required',
-            Rule::unique('products', 'model_number')->ignore($product->id),
-        ],
+        'model_number' => 'required',
         'name' => 'required|string|max:255',
         'categories_id' => 'required|exists:categories,id',
         'subcategories_id' => 'nullable|exists:subcategories,id',
@@ -85,7 +80,10 @@ public function update(Request $request, Product $product)
         'description' => 'nullable|string',
         'barcode' => 'nullable|string',
     ]);
+    // dd($request->all());
 
+    // print_r($request->id);
+    // exit;
     // Handle file uploads, only replace if new file is uploaded
     if ($request->hasFile('image')) {
         $validated['image'] = $request->file('image')->store('products', 'public');
@@ -110,10 +108,18 @@ public function update(Request $request, Product $product)
     return redirect()->route('products.index')->with('success', 'Product updated successfully.');
 }
 
-public function destroy(Product $product)
+public function destroy($id)
 {
+    $product = Product::findOrFail($id);
     $product->delete();
+
     return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
 }
+public function getSubcategories($category_id)
+{
+    $subcategories = \App\Models\Subcategory::where('categories_id', $category_id)->get(['id', 'name']);
+    return response()->json($subcategories);
+}
+
 
 }

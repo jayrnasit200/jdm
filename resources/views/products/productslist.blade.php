@@ -28,7 +28,7 @@
                     <div class="card-body">
                         @if($products->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-striped align-middle">
+                                <table id="myTable" class="table table-striped align-middle">
                                     <thead class="table-light">
                                         <tr>
                                             <th>#</th>
@@ -58,8 +58,8 @@
 
                                                 <td>{{ $product->model_number }}</td>
                                                 <td>{{ $product->name }}</td>
-                                                <td>{{ $product->category->name ?? '-' }}</td>
-                                                <td>{{ $product->subcategory->name ?? '-' }}</td>
+                                                <td style="width:20%">{{ $product->category->name ?? '-' }}</td>
+                                                <td style="width:20%">{{ $product->subcategory->name ?? '-' }}</td>
                                                 <td>{{ $product->price }}</td>
                                                 <td>{{ ucfirst($product->status) }}</td>
                                                 <td class="text-end">

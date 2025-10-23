@@ -36,10 +36,10 @@
                                 <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
                             </div>
 
-                            {{-- Category --}}
+                        {{-- Category --}}
                             <div class="mb-3">
                                 <label class="form-label">Category</label>
-                                <select name="categories_id" class="form-control select2" required>
+                                <select name="categories_id" id="category" class="form-control select2" required>
                                     <option value="">-- Select Category --</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" {{ old('categories_id') == $category->id ? 'selected' : '' }}>
@@ -52,7 +52,7 @@
                             {{-- Subcategory --}}
                             <div class="mb-3">
                                 <label class="form-label">Subcategory</label>
-                                <select name="subcategories_id" class="form-control select2">
+                                <select name="subcategories_id" id="subcategory" class="form-control select2">
                                     <option value="">-- Select Subcategory --</option>
                                     @foreach($subcategories as $subcategory)
                                         <option value="{{ $subcategory->id }}" {{ old('subcategories_id') == $subcategory->id ? 'selected' : '' }}>
@@ -139,5 +139,36 @@
         </div>
     </div>
 
-   
+    @push('scripts')
+    <script>
+    $(document).ready(function() {
+        $('#category').on('change', function() {
+            var categoryId = $(this).val();
+    
+            // Clear previous options
+            $('#subcategory').html('<option value="">-- Select Subcategory --</option>');
+    
+            if (categoryId) {
+                $.ajax({
+                    url: "/get-subcategories/" + categoryId, // ✅ fixed line
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        if (data.length > 0) {
+                            $.each(data, function(key, subcategory) {
+                                $('#subcategory').append('<option value="' + subcategory.id + '">' + subcategory.name + '</option>');
+                            });
+                        } else {
+                            $('#subcategory').append('<option value="">No subcategories found</option>');
+                        }
+                    }
+                });
+            }
+        });
+    });
+    </script>
+    @endpush
+    
+
+
 </x-app-layout>

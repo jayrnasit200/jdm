@@ -24,6 +24,11 @@
                         Catogorys
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('products.index')) active @endif" href="{{ route('products.index') }}">
+                        Product
+                    </a>
+                </li>
             </ul>
 
             <!-- User Dropdown -->

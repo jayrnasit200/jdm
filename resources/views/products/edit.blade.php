@@ -21,11 +21,10 @@
                         @endif
 
                         {{-- Product Form --}}
-                        <form action="{{ route('products.update') }}" method="POST" enctype="multipart/form-data">
-
-                        {{-- <form action="{{ route('products.update') }}" method="POST" enctype="multipart/form-data"> --}}
+                        <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
+                            <input type="hidden" name="id" value="{{ old('id', $product->id) }}">
 
                             {{-- Model Number --}}
                             <div class="mb-3">
@@ -42,7 +41,7 @@
                             {{-- Category --}}
                             <div class="mb-3">
                                 <label class="form-label">Category</label>
-                                <select name="categories_id" class="form-control select2" required>
+                                <select name="categories_id" id="category" class="form-control select2" required>
                                     <option value="">-- Select Category --</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" 
@@ -56,7 +55,7 @@
                             {{-- Subcategory --}}
                             <div class="mb-3">
                                 <label class="form-label">Subcategory</label>
-                                <select name="subcategories_id" class="form-control select2">
+                                <select name="subcategories_id" id="subcategory" class="form-control select2" required>
                                     <option value="">-- Select Subcategory --</option>
                                     @foreach($subcategories as $subcategory)
                                         <option value="{{ $subcategory->id }}" 
@@ -73,41 +72,19 @@
                                 <textarea name="description" class="form-control">{{ old('description', $product->description) }}</textarea>
                             </div>
 
-                            {{-- Main Image --}}
-                            <div class="mb-3">
-                                <label class="form-label">Current Main Image</label>
-                                @if($product->image)
-                                    <div class="mb-2">
-                                        <img src="{{ asset('storage/'.$product->image) }}" alt="Main Image" class="img-thumbnail" width="120">
-                                    </div>
-                                @endif
-                                <label class="form-label">Change Main Image</label>
-                                <input type="file" name="image" class="form-control">
-                            </div>
-
-                            {{-- Back Image --}}
-                            <div class="mb-3">
-                                <label class="form-label">Current Back Image</label>
-                                @if($product->backimage)
-                                    <div class="mb-2">
-                                        <img src="{{ asset('storage/'.$product->backimage) }}" alt="Back Image" class="img-thumbnail" width="120">
-                                    </div>
-                                @endif
-                                <label class="form-label">Change Back Image</label>
-                                <input type="file" name="backimage" class="form-control">
-                            </div>
-
-                            {{-- Nutrition Image --}}
-                            <div class="mb-3">
-                                <label class="form-label">Current Nutrition Image</label>
-                                @if($product->nutritionimage)
-                                    <div class="mb-2">
-                                        <img src="{{ asset('storage/'.$product->nutritionimage) }}" alt="Nutrition Image" class="img-thumbnail" width="120">
-                                    </div>
-                                @endif
-                                <label class="form-label">Change Nutrition Image</label>
-                                <input type="file" name="nutritionimage" class="form-control">
-                            </div>
+                            {{-- Images --}}
+                            @foreach(['image' => 'Main', 'backimage' => 'Back', 'nutritionimage' => 'Nutrition'] as $field => $label)
+                                <div class="mb-3">
+                                    <label class="form-label">Current {{ $label }} Image</label>
+                                    @if($product->$field)
+                                        <div class="mb-2">
+                                            <img src="{{ asset('storage/'.$product->$field) }}" alt="{{ $label }} Image" class="img-thumbnail" width="120">
+                                        </div>
+                                    @endif
+                                    <label class="form-label">Change {{ $label }} Image</label>
+                                    <input type="file" name="{{ $field }}" class="form-control">
+                                </div>
+                            @endforeach
 
                             {{-- Barcode --}}
                             <div class="mb-3">
@@ -162,22 +139,49 @@
         </div>
     </div>
 
-    {{-- Include Select2 --}}
     @push('styles')
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     @endpush
 
     @push('scripts')
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
+            $(document).ready(function() {
+                // Initialize Select2
                 $('.select2').select2({
                     placeholder: "Select an option",
                     allowClear: true,
                     width: '100%'
                 });
+
+                // Load subcategories when category changes
+                $('#category').on('change', function() {
+                    var categoryId = $(this).val();
+                    $('#subcategory').html('<option value="">-- Select Subcategory --</option>');
+
+                    if(categoryId) {
+                        $.ajax({
+                            url: '/get-subcategories/' + categoryId,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(data) {
+                                $.each(data, function(key, subcategory) {
+                                    var selected = subcategory.id == "{{ old('subcategories_id', $product->subcategories_id) }}" ? 'selected' : '';
+                                    $('#subcategory').append('<option value="' + subcategory.id + '" '+selected+'>' + subcategory.name + '</option>');
+                                });
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('AJAX Error:', error);
+                            }
+                        });
+                    }
+                });
+
+                // Trigger change on page load to populate subcategories for existing category
+                $('#category').trigger('change');
             });
         </script>
     @endpush
-
 </x-app-layout>
