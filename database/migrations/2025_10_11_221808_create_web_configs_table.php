@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('web_configs', function (Blueprint $table) {
             $table->id();
-            $table->text('option');
-           $table->text('value');
+            $table->string('key')->unique();   // e.g., 'site_name', 'default_currency'
+            $table->text('value')->nullable(); // store the value
+            $table->timestamps();
         });
         $data = [
-            ['option'=>'site_name','value'=>'JDM'],
-            ['option'=>'from_email_address','value'=>'info@jdm-distributors.co.uk'],
-            ['option'=>'copyright_text','value'=>'Copyright © JDM Distributors services. All rights reserved.'],
+            ['key'=>'site_name','value'=>'JDM'],
+            ['key'=>'from_email_address','value'=>'info@jdm-distributors.co.uk'],
+            ['key'=>'copyright_text','value'=>'Copyright © JDM Distributors services. All rights reserved.'],
         ];
         DB::table('web_configs')->insert($data);
     }

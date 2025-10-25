@@ -28,7 +28,7 @@
                         {{-- ✅ Category Table --}}
                         @if ($categories->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-striped align-middle">
+                                <table id="myTable" class="table table-striped align-middle">
                                     <thead class="table-light">
                                         <tr>
                                             <th>#</th>

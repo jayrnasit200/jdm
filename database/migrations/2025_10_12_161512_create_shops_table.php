@@ -13,16 +13,22 @@ return new class extends Migration
     {
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
-            $table->text('name');
-            $table->text('email');
-            $table->text('phone');
+            $table->text('shopname');
             $table->text('address');
             $table->text('city');
             $table->text('postcode');
+            $table->text('email');
+            $table->text('phone');
+            $table->text('Vat')->nullable();
+            $table->text('Name_staff')->nullable();
+            $table->text('Staffnumber1')->nullable();
+            $table->text('Staffnumber2')->nullable();
+            
             $table->timestamps();
         });
     }
-
+     
+   
     /**
      * Reverse the migrations.
      */

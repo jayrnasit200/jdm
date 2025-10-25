@@ -8,6 +8,7 @@ use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SubCustomerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShopController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -55,8 +56,16 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::delete('/products/destroy/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/get-subcategories/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
 
-});
 
+    Route::get('/shops', [shopController::class, 'index'])->name('shops.index');
+    Route::get('/shops/create', [shopController::class, 'create'])->name('shops.create');
+    Route::post('/shops/store', [shopController::class, 'store'])->name('shops.store');
+    Route::get('/shops/edit/{id}', [shopController::class, 'edit'])->name('shops.edit');
+    // Route::put('/shops/update/{shop}', [shopController::class, 'update'])->name('shops.update');
+    Route::put('/shops/update/{id}', [shopController::class, 'update'])->name('shops.update');
+    Route::delete('/shops/destroy/{shop}', [ShopController::class, 'destroy'])->name('shops.destroy');
+    
+});
 Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::get('/owner', [OwnerController::class, 'index'])->name('owner.dashboard');
 

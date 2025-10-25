@@ -2,7 +2,7 @@
     <div class="container">
         <!-- Logo -->
         <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
-            {{ config('app.name', 'JDM') }}
+            {{ sys_config('site_name') }}
         </a>
 
         <!-- Hamburger / Toggler -->
@@ -29,6 +29,13 @@
                         Product
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shops.index')) active @endif" href="{{ route('shops.index') }}">
+                        shops
+                    </a>
+                </li>
+                
+                
             </ul>
 
             <!-- User Dropdown -->

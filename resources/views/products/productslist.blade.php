@@ -12,11 +12,11 @@
         <div class="row justify-content-center">
             <div class="col-lg-12">
 
-                {{-- Success Message --}}
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show">
+                {{-- ✅ Success Message --}}
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <i class="bi bi-check-circle"></i> {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
 
@@ -26,7 +26,7 @@
                     </div>
 
                     <div class="card-body">
-                        @if($products->count() > 0)
+                        @if ($products->count() > 0)
                             <div class="table-responsive">
                                 <table id="myTable" class="table table-striped align-middle">
                                     <thead class="table-light">
@@ -43,14 +43,20 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($products as $index => $product)
+                                        @foreach ($products as $index => $product)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                
-                                                {{-- Display main image --}}
+
+                                                {{-- ✅ Product Image --}}
                                                 <td>
-                                                    @if($product->image)
-                                                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                                    @if ($product->image)
+                                                        <a href="{{ asset('storage/' . $product->image) }}"
+                                                           data-lightbox="product-gallery"
+                                                           data-title="{{ $product->name }}">
+                                                            <img src="{{ asset('storage/' . $product->image) }}"
+                                                                 alt="{{ $product->name }}"
+                                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                                        </a>
                                                     @else
                                                         -
                                                     @endif
@@ -58,21 +64,67 @@
 
                                                 <td>{{ $product->model_number }}</td>
                                                 <td>{{ $product->name }}</td>
-                                                <td style="width:20%">{{ $product->category->name ?? '-' }}</td>
-                                                <td style="width:20%">{{ $product->subcategory->name ?? '-' }}</td>
+                                                <td>{{ $product->category->name ?? '-' }}</td>
+                                                <td>{{ $product->subcategory->name ?? '-' }}</td>
                                                 <td>{{ $product->price }}</td>
                                                 <td>{{ ucfirst($product->status) }}</td>
+
                                                 <td class="text-end">
-                                                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-warning">
+                                                    {{-- ✅ Edit Button --}}
+                                                    <a href="{{ route('products.edit', $product->id) }}"
+                                                       class="btn btn-sm btn-warning">
                                                         <i class="bi bi-pencil"></i> Edit
                                                     </a>
-                                                    <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button class="btn btn-sm btn-danger">
-                                                            <i class="bi bi-trash"></i> Delete
-                                                        </button>
-                                                    </form>
+
+                                                    {{-- ✅ Delete Button --}}
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal{{ $product->id }}">
+                                                        <i class="bi bi-trash"></i> Delete
+                                                    </button>
+
+                                                    {{-- ✅ Delete Confirmation Modal --}}
+                                                    <div class="modal fade"
+                                                         id="deleteModal{{ $product->id }}"
+                                                         tabindex="-1"
+                                                         aria-labelledby="deleteModalLabel{{ $product->id }}"
+                                                         aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content shadow">
+                                                                <div class="modal-header bg-danger text-white">
+                                                                    <h5 class="modal-title" id="deleteModalLabel{{ $product->id }}">
+                                                                        <i class="bi bi-exclamation-triangle"></i> Confirm Delete
+                                                                    </h5>
+                                                                    <button type="button"
+                                                                            class="btn-close btn-close-white"
+                                                                            data-bs-dismiss="modal"
+                                                                            aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body text-center">
+                                                                    <i class="bi bi-trash3 text-danger fs-1 mb-3"></i>
+                                                                    <p class="fw-semibold">
+                                                                        Are you sure you want to delete
+                                                                        <strong>{{ $product->name }}</strong>?
+                                                                    </p>
+                                                                    <p class="text-muted small mb-0">This action cannot be undone.</p>
+                                                                </div>
+                                                                <div class="modal-footer justify-content-center">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                        Cancel
+                                                                    </button>
+                                                                    <form action="{{ route('products.destroy', $product->id) }}"
+                                                                          method="POST" class="d-inline">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-danger">
+                                                                            Yes, Delete
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -80,10 +132,11 @@
                                 </table>
                             </div>
                         @else
+                            {{-- Empty State --}}
                             <div class="text-center py-5 text-muted">
-                                <i class="bi bi-box-seam fs-1"></i>
+                                <i class="bi bi-box-seam fs-1 text-secondary"></i>
                                 <h5 class="mt-3">No products found.</h5>
-                                <p>Add your first product below.</p>
+                                <p class="text-muted">Start by adding your first product below.</p>
                                 <a href="{{ route('products.create') }}" class="btn btn-primary mt-2">
                                     <i class="bi bi-plus-circle"></i> Add Product
                                 </a>
@@ -95,13 +148,14 @@
         </div>
     </div>
 
-    {{-- Auto-hide success alert --}}
+    {{-- ✅ Auto-hide Success Message --}}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const alert = document.querySelector('.alert-success');
-            if(alert){
+            if (alert) {
                 setTimeout(() => {
-                    new bootstrap.Alert(alert).close();
+                    const fade = new bootstrap.Alert(alert);
+                    fade.close();
                 }, 4000);
             }
         });

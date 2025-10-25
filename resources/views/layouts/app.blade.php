@@ -113,7 +113,8 @@ document.addEventListener("DOMContentLoaded", function() {
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/jdm_distributors_logo.jpeg') }}">
 
-    <title>{{ config('app.name', 'JDM') }}</title>
+    <title>{{ sys_config('site_name') }}
+    </title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -125,6 +126,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+
+    <!-- Lightbox CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
 
     <style>
         body {
@@ -170,6 +174,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
    <!-- jQuery first -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<!-- Lightbox JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox-plus-jquery.min.js"></script>
 
 <!-- Select2 -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -181,6 +187,15 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 
+
+<script>
+    lightbox.option({
+      'resizeDuration': 200,
+      'wrapAround': true,
+      'alwaysShowNavOnTouchDevices': true,
+      'albumLabel': "Image %1 of %2"
+    })
+</script>
 
 
     <script>
