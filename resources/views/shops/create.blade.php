@@ -23,6 +23,18 @@
                     <form action="{{ route('shops.store') }}" method="POST">
                         @csrf
 
+                        {{-- Company Name --}}
+                        <div class="mb-3">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" name="company_name" class="form-control" value="{{ old('company_name') }}" required>
+                        </div>
+
+                        {{-- Reference --}}
+                        <div class="mb-3">
+                            <label class="form-label">Reference (Ref)</label>
+                            <input type="text" name="ref" class="form-control" value="{{ old('ref') }}">
+                        </div>
+
                         {{-- Shop Name --}}
                         <div class="mb-3">
                             <label class="form-label">Shop Name</label>
@@ -88,7 +100,6 @@
                             <a href="{{ route('shops.index') }}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-success">Add Shop</button>
                         </div>
-
                     </form>
                 </div>
             </div>

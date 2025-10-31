@@ -24,10 +24,11 @@
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
+                                <th>REF</th>
                                 <th>Shop Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                                <th>VAT</th>
+                               
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -35,14 +36,15 @@
                             @foreach($shops as $shop)
                                 <tr>
                                     <td>{{ $shop->id }}</td>
+                                    <td>{{ $shop->ref }}</td>
                                     <td>{{ $shop->shopname }}</td>
                                     <td>{{ $shop->email }}</td>
                                     <td>{{ $shop->phone }}</td>
-                                    <td>{{ $shop->Vat }}</td>
+                                    
                                     <td class="text-end">
                                         {{-- Edit Button --}}
                                         <a href="{{ route('shops.edit', $shop->id) }}" class="btn btn-sm btn-warning">
-                                            <i class="bi bi-pencil"></i> Edit
+                                            <i class='fa fa-edit'></i>
                                         </a>
 
                                         {{-- Delete Button Trigger --}}
@@ -50,7 +52,7 @@
                                                 class="btn btn-sm btn-danger"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal{{ $shop->id }}">
-                                            <i class="bi bi-trash"></i> Delete
+                                                <i class='fa fa-trash'></i>
                                         </button>
 
                                         {{-- Delete Confirmation Modal --}}

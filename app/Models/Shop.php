@@ -12,6 +12,8 @@ class Shop extends Model
     protected $table = 'shops'; // match your table name
 
     protected $fillable = [
+        'company_name', 
+        'ref', 
         'shopname',
         'address',
         'city',

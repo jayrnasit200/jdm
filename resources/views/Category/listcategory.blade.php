@@ -52,7 +52,7 @@
                                                     <button type="button" class="btn btn-sm btn-danger"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#deleteModal{{ $category->id }}">
-                                                        <i class="bi bi-trash"></i> Delete
+                                                            <i class='fa fa-trash'></i>
                                                     </button>
                                                     <a href="{{ route('subcatogory', $category->id) }}"
                                                         class="btn btn-sm btn-primary">

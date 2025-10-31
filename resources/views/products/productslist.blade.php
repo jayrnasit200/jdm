@@ -81,7 +81,7 @@
                                                             class="btn btn-sm btn-danger"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#deleteModal{{ $product->id }}">
-                                                        <i class="bi bi-trash"></i> Delete
+                                                            <i class='fa fa-trash'></i>
                                                     </button>
 
                                                     {{-- ✅ Delete Confirmation Modal --}}
