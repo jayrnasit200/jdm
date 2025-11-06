@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function() {
         width: '100%'
     });
 });
-   
+
 </script>
 
 
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -227,5 +227,31 @@ document.addEventListener("DOMContentLoaded", function() {
     </script>
 
     @stack('scripts')
+    @stack('scripts')
+
+    <!-- 🌟 Page Loader -->
+    <div id="page-loader" style="
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    ">
+        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function () {
+            const loader = document.getElementById('page-loader');
+            if(loader){
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }
+        });
+    </script>
 </body>
 </html>

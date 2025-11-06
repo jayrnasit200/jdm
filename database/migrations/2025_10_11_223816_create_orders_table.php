@@ -13,17 +13,19 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            // $table->integer('user_id');
-            // $table->string('invoice_number');
-            // $table->integer('user_addresses_id');
-            // $table->integer('payment_id');
-            // $table->text('comments_about_your_order')->nullable();
-            // $table->enum('status',['padding','success'])->default('padding');
-            // $table->timestamps();
-            // $table->foreign('user_id')->references('id')->on('users');
-            // $table->foreign('user_addresses_id')->references('id')->on('user_addresses');
-            // $table->foreign('payment_id')->references('id')->on('payments');
+            $table->integer('sellar_id');
+            $table->integer('shop_id');
+            $table->string('invoice_number');
+            $table->text('comments_about_your_order')->nullable();
+            $table->text('invoice')->nullable();
+            // $table->decimal('price', 10, 2);
+            $table->decimal('discount', 10, 2)->nullable();
+            $table->decimal('net_total', 10, 2)->nullable();
+            $table->decimal('Vat', 10, 2)->nullable();
+            $table->decimal('total', 10, 2)->nullable();
+            $table->enum('payment_status',['padding','success'])->default('padding');
             $table->timestamps();
+
         });
     }
 

@@ -11,7 +11,18 @@ class ProductController extends Controller
 {
     public function index()
 {
-    $products = Product::with('category', 'subcategory')->get();
+    // $products = Product::with('category', 'subcategory')->get();
+    $products = Product::with('category', 'subcategory')
+    ->orderByRaw('
+        CASE
+            WHEN categories_id = 0 AND subcategories_id = 0 THEN 0
+            ELSE 1
+        END
+    ')
+    ->orderBy('categories_id')
+    ->orderBy('subcategories_id')
+    ->get();
+
     return view('products.productslist', compact('products'));
 }
 public function create()
@@ -117,9 +128,10 @@ public function destroy($id)
 }
 public function getSubcategories($category_id)
 {
-    $subcategories = \App\Models\Subcategory::where('categories_id', $category_id)->get(['id', 'name']);
+    $subcategories = Subcategory::where('categories_id', $category_id)->get(['id', 'name']);
     return response()->json($subcategories);
 }
+
 
 
 }

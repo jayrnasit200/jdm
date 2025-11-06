@@ -12,8 +12,8 @@ class Shop extends Model
     protected $table = 'shops'; // match your table name
 
     protected $fillable = [
-        'company_name', 
-        'ref', 
+        'company_name',
+        'ref',
         'shopname',
         'address',
         'city',
@@ -25,4 +25,10 @@ class Shop extends Model
         'Staffnumber1',
         'Staffnumber2',
     ];
+
+    // 🧠 This is the missing relationship
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'shop_id', 'id');
+    }
 }

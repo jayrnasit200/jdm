@@ -19,23 +19,23 @@
                     </a>
                 </li>
                 <!-- Add more links here if needed -->
-                <li class="nav-item">
-                    <a class="nav-link @if(request()->routeIs('customere')) active @endif" href="{{ route('customere') }}">
+                {{-- <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('category')) active @endif" href="{{ route('customere') }}">
                         Catogorys
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> --}}
+                {{-- <li class="nav-item">
                     <a class="nav-link @if(request()->routeIs('products.index')) active @endif" href="{{ route('products.index') }}">
                         Product
                     </a>
-                </li>
+                </li> --}}
                 <li class="nav-item">
-                    <a class="nav-link @if(request()->routeIs('shops.index')) active @endif" href="{{ route('shops.index') }}">
+                    <a class="nav-link @if(request()->routeIs('shop.index')) active @endif" href="{{ route('shop.index') }}">
                         shops
                     </a>
                 </li>
-                
-                
+
+
             </ul>
 
             <!-- User Dropdown -->
@@ -49,6 +49,24 @@
                         <li>
                             <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                 Profile
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item" href="{{ route('shops.index') }}">
+                                shops
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item" href="{{ route('products.index') }}">
+                                Products
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item" href="{{ route('category') }}">
+                                Catogorys
                             </a>
                         </li>
                         <li>
