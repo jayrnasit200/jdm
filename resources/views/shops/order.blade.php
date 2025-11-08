@@ -2,24 +2,25 @@
     <main class="container py-5">
 
         <!-- Header with View Cart Button -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="display-5 mb-0 text-center">Shop All Products</h1>
-                <p class="lead text-center">Discover our full collection of modern, sustainable goods.</p>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div class="text-center flex-grow-1">
+                <h1 class="display-5 mb-0">Shop Products</h1>
+                <p class="lead mb-0">Explore our full range of goods and special offers</p>
             </div>
-            <div class="text-end">
-                <button id="viewCartBtn" class="btn btn-dark">
-                    View Cart <span id="cartCount" class="badge bg-light text-dark">0</span>
+            <div class="text-end mt-3 mt-md-0">
+                <button id="viewCartBtn" class="btn btn-dark rounded-pill">
+                    🛒 View Cart <span id="cartCount" class="badge bg-light text-dark">0</span>
                 </button>
             </div>
         </div>
 
-        <!-- Category Filters -->
+        <!-- Category Filter Buttons -->
         @php
             $categories = $products->pluck('category')->filter()->unique('id');
         @endphp
         <div class="mb-4 d-flex flex-wrap justify-content-center gap-2">
-            <button data-filter="all" class="btn btn-primary filter-btn">All Products</button>
+            <button data-filter="all" class="btn btn-primary filter-btn active">All Products</button>
+            <button data-filter="offer" class="btn btn-outline-danger filter-btn">🔥 Offers</button>
             @foreach($categories as $category)
                 @if($category && $category->name)
                     <button data-filter="{{ $category->name }}" class="btn btn-outline-secondary filter-btn">
@@ -30,50 +31,65 @@
         </div>
 
         <!-- Product Grid -->
-        <div class="row" id="product-grid">
-            @forelse ($products as $product)
+        <div id="product-grid" class="row g-4">
+            @foreach ($products as $product)
                 @php
-                    $vatAmount = $product->vat ? ($product->price * sys_config('vat')) / 100 : 0;
+                    $vatRate = sys_config('vat') ?? 0;
+                    $vatAmount = $product->vat ? ($product->price * $vatRate) / 100 : 0;
                     $priceWithVat = $product->price + $vatAmount;
                     $productData = [
                         'id' => $product->id,
                         'name' => $product->name,
                         'price' => $priceWithVat,
-                        'shop_id' => $shopid ?? 1
+                        'shop_id' => $shopid ?? 1,
+                        'category' => $product->category->name ?? 'Uncategorized',
+                        'special_offer' => $product->special_offer,
+                        'status' => $product->status
                     ];
                 @endphp
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4 product-card" data-category="{{ $product->category->name ?? 'Uncategorized' }}">
-                    <div class="card h-100 shadow-sm border-0">
-                        <!-- Clickable Image to open modal -->
-                        <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://via.placeholder.com/300x200?text=No+Image' }}"
-                            class="card-img-top rounded-top product-detail-trigger"
-                            style="height: 200px; object-fit: cover;"
-                            alt="{{ $product->name }}"
-                            data-bs-toggle="modal"
-                            data-bs-target="#productModal{{ $product->id }}">
-                        <div class="card-body d-flex flex-column">
-                            <h6 class="card-title">{{ $product->name }}</h6>
-                            @php
-                                $vatRate = sys_config('vat') ?? 0; // VAT percentage
-                                $vatAmount = $product->vat ? ($product->price * $vatRate) / 100 : 0;
-                                $priceWithVat = $product->price + $vatAmount;
-                            @endphp
 
-                            <p class="card-text fw-bold mb-1">
+                <div class="col-6 col-md-3 col-lg-3 product-card"
+                    data-category="{{ $product->category->name ?? 'Uncategorized' }}"
+                    data-offer="{{ $product->special_offer ? '1' : '0' }}"
+                    data-status="{{ $product->status ?? 'active' }}">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden position-relative">
+
+                        <!-- Offer & Stock Labels -->
+                        @if($product->special_offer == "yes")
+                            {{-- <span class="badge bg-danger position-absolute top-0 start-0 m-2">🔥 Offer</span> --}}
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-2">🔥 Offer</span>
+                        @endif
+                        @if($product->status === 'disable')
+                            {{-- <span class="badge bg-secondary position-absolute top-0 end-0 m-2">Out of Stock</span> --}}
+                        @endif
+
+                        <!-- Clickable Image (opens modal) -->
+                        <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://via.placeholder.com/300x200?text=No+Image' }}"
+                             class="card-img-top product-detail-trigger"
+                             style="height:180px;object-fit:cover;cursor:pointer"
+                             alt="{{ $product->name }}"
+                             data-bs-toggle="modal"
+                             data-bs-target="#productModal{{ $product->id }}">
+
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-truncate">{{ $product->name }}</h6>
+                            <p class="card-text fw-bold mb-2">
                                 £{{ number_format($product->price, 2) }}
-                                <small class="text-muted"> (incl. VAT £{{ number_format($priceWithVat, 2) }})</small>
+                                <small class="text-muted d-block">incl. VAT £{{ number_format($priceWithVat, 2) }}</small>
                             </p>
 
-                            {{-- <p class="card-text fw-bold mb-1">£{{ number_format($priceWithVat, 2) }}</p> --}}
-
                             <div class="mt-auto d-flex justify-content-center align-items-center gap-2">
-                                <button class="btn btn-outline-primary rounded-pill add-to-cart-btn"
-                                        data-product='{{ json_encode($productData) }}'>Add to Cart</button>
-                                <div class="d-none quantity-wrapper d-flex align-items-center gap-2">
-                                    <button class="btn btn-outline-secondary btn btn-light text-dark rounded-circle decrement-btn">−</button>
-                                    <input type="text" class="form-control text-center quantity-input p-1" value="1" style="width: 50px;" readonly>
-                                    <button class="btn btn-outline-secondary btn btn-light text-dark rounded-circle increment-btn">+</button>
-                                </div>
+                                @if($product->status !== 'disable')
+                                    <button class="btn btn-outline-primary rounded-pill add-to-cart-btn"
+                                        data-product='@json($productData)'>Add to Cart</button>
+                                    <div class="d-none quantity-wrapper d-flex align-items-center gap-2">
+                                        <button class="btn btn-outline-secondary rounded-circle decrement-btn">−</button>
+                                        <input type="text" class="form-control text-center quantity-input p-1" value="1" style="width:50px" readonly>
+                                        <button class="btn btn-outline-secondary rounded-circle increment-btn">+</button>
+                                    </div>
+                                @else
+                                    <span class="badge bg-warning text-dark">Out of Stock</span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -82,36 +98,26 @@
                 <!-- Product Detail Modal -->
                 <div class="modal fade" id="productModal{{ $product->id }}" tabindex="-1" aria-labelledby="productModalLabel{{ $product->id }}" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-dark text-white">
+                        <div class="modal-content rounded-4">
+                            <div class="modal-header bg-dark text-white rounded-top-4">
                                 <h5 class="modal-title" id="productModalLabel{{ $product->id }}">{{ $product->name }}</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body row">
                                 <div class="col-md-5">
                                     <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://via.placeholder.com/400x300?text=No+Image' }}"
-                                        class="img-fluid rounded" alt="{{ $product->name }}">
+                                         class="img-fluid rounded" alt="{{ $product->name }}">
                                 </div>
                                 <div class="col-md-7">
                                     <h5 class="fw-bold">{{ $product->name }}</h5>
-                                    <p class="text-muted mb-2">{{ $product->model_number ?? '' }}</p>
+                                    <p class="text-muted">{{ $product->model_number ?? '' }}</p>
                                     <p>{{ $product->description ?? 'No description available.' }}</p>
+                                    <p><strong>Price:</strong> £{{ number_format($priceWithVat, 2) }}</p>
+                                    <p><strong>VAT:</strong> {{ $vatRate }}% (Included)</p>
+                                    <p><strong>Status:</strong> {{ ucfirst($product->status ?? 'Available') }}</p>
 
-                                    @php
-                                    $vatRate = sys_config('vat') ?? 0; // VAT percentage
-                                    $vatAmount = $product->vat ? ($product->price * $vatRate) / 100 : 0;
-                                    $priceWithVat = $product->price + $vatAmount;
-                                @endphp
-
-
-                                 <p><strong>Price:</strong> <span class="text-success fw-semibold">£{{ number_format($priceWithVat, 2) }}</span></p>
-                                    <p><strong>VAT:</strong> £{{ number_format($priceWithVat, 2) }} </p>
-                                    <p><strong>Status:</strong> {{ ucfirst($product->status ?? 'Unavailable') }}</p>
-                                    @if($product->barcode)
-                                        <p><strong>Barcode:</strong> {{ $product->barcode }}</p>
-                                    @endif
-                                    <button class="btn btn-outline-primary w-100 add-to-cart-btn mt-2"
-                                            data-product='{{ json_encode($productData) }}'>
+                                    <button class="btn btn-outline-primary w-100 mt-2 add-to-cart-btn"
+                                        data-product='@json($productData)'>
                                         Add to Cart
                                     </button>
                                 </div>
@@ -119,31 +125,31 @@
                         </div>
                     </div>
                 </div>
-            @empty
-                <p class="col-12 text-center text-muted">No products available.</p>
-            @endforelse
+
+            @endforeach
         </div>
+
     </main>
 
     <!-- Cart Modal -->
     <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="cartModalLabel">Your Cart</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-dark text-white rounded-top-4">
+                    <h5 class="modal-title" id="cartModalLabel">🛍️ Your Cart</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div id="cartItems"></div>
                     <hr>
-                    <div class="d-flex justify-content-between">
-                        <h5>Total:</h5>
-                        <h5 id="cartTotal">£0.00</h5>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total:</span>
+                        <span id="cartTotal">£0.00</span>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="{{ url('cart.checkout') }}" class="btn btn-primary">Proceed to Checkout</a>
+                    <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Close</button>
+                    <a href="{{ url('cart.checkout') }}" class="btn btn-primary rounded-pill">Proceed to Checkout</a>
                 </div>
             </div>
         </div>
@@ -152,128 +158,132 @@
     <!-- JS -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const shopId = "{{ $shopid ?? 1 }}"; // current shop session ID
-            const cartKey = `cart_${shopId}`; // separate cart for each shop
+            const shopId = "{{ $shopid ?? 1 }}";
+            const cartKey = `cart_${shopId}`;
             const cartCountEl = document.getElementById('cartCount');
             const cartItemsContainer = document.getElementById('cartItems');
             const cartTotalEl = document.getElementById('cartTotal');
             const viewCartBtn = document.getElementById('viewCartBtn');
+            const filterButtons = document.querySelectorAll('.filter-btn');
 
-            // 🔹 Load Cart
             const getCart = () => JSON.parse(localStorage.getItem(cartKey)) || {};
-
-            // 🔹 Save Cart
             const saveCart = (cart) => localStorage.setItem(cartKey, JSON.stringify(cart));
-
-            // 🔹 Update Cart Count
             const updateCartCount = () => {
                 const cart = getCart();
-                let count = 0;
-                for (let productId in cart) count += cart[productId].quantity;
+                let count = Object.values(cart).reduce((sum, p) => sum + p.quantity, 0);
                 cartCountEl.textContent = count;
             };
 
-            // 🔹 Product Cards Setup
-            const setupProductCards = () => {
+            const setupCards = () => {
                 document.querySelectorAll('.product-card').forEach(card => {
                     const addBtn = card.querySelector('.add-to-cart-btn');
-                    const qtyWrapper = card.querySelector('.quantity-wrapper');
-                    const decrementBtn = card.querySelector('.decrement-btn');
-                    const incrementBtn = card.querySelector('.increment-btn');
-                    const qtyInput = card.querySelector('.quantity-input');
+                    const qtyWrap = card.querySelector('.quantity-wrapper');
+                    const inc = card.querySelector('.increment-btn');
+                    const dec = card.querySelector('.decrement-btn');
+                    const qty = card.querySelector('.quantity-input');
+                    if (!addBtn) return;
                     const product = JSON.parse(addBtn.dataset.product);
-
                     const cart = getCart();
-                    if(cart[product.id]) {
+
+                    if (cart[product.id]) {
                         addBtn.classList.add('d-none');
-                        qtyWrapper.classList.remove('d-none');
-                        qtyInput.value = cart[product.id].quantity;
+                        qtyWrap.classList.remove('d-none');
+                        qty.value = cart[product.id].quantity;
                     }
 
-                    addBtn.addEventListener('click', () => {
+                    addBtn.onclick = () => {
                         const cart = getCart();
                         cart[product.id] = {...product, quantity: 1};
                         saveCart(cart);
                         addBtn.classList.add('d-none');
-                        qtyWrapper.classList.remove('d-none');
-                        qtyInput.value = 1;
+                        qtyWrap.classList.remove('d-none');
                         updateCartCount();
-                    });
+                    };
 
-                    incrementBtn.addEventListener('click', () => {
+                    inc.onclick = () => {
                         const cart = getCart();
-                        cart[product.id].quantity += 1;
+                        cart[product.id].quantity++;
                         saveCart(cart);
-                        qtyInput.value = cart[product.id].quantity;
+                        qty.value = cart[product.id].quantity;
                         updateCartCount();
-                    });
+                    };
 
-                    decrementBtn.addEventListener('click', () => {
+                    dec.onclick = () => {
                         const cart = getCart();
-                        if(cart[product.id].quantity > 1) {
-                            cart[product.id].quantity -= 1;
+                        if (cart[product.id].quantity > 1) {
+                            cart[product.id].quantity--;
                             saveCart(cart);
-                            qtyInput.value = cart[product.id].quantity;
+                            qty.value = cart[product.id].quantity;
                         } else {
                             delete cart[product.id];
                             saveCart(cart);
-                            card.querySelector('.add-to-cart-btn').classList.remove('d-none');
-                            card.querySelector('.quantity-wrapper').classList.add('d-none');
+                            addBtn.classList.remove('d-none');
+                            qtyWrap.classList.add('d-none');
                         }
                         updateCartCount();
-                    });
+                    };
                 });
             };
 
-            // 🔹 Render Cart Modal (shop-specific)
             const renderCart = () => {
                 const cart = getCart();
                 let html = '', total = 0;
-
-                if(Object.keys(cart).length === 0) {
+                if (Object.keys(cart).length === 0) {
                     html = '<p class="text-center text-muted">Your cart is empty.</p>';
                 } else {
-                    html += `<table class="table table-bordered mb-3">
-                        <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th><th>Action</th></tr></thead><tbody>`;
-                    for(let productId in cart){
-                        const item = cart[productId];
-                        const subtotal = Number(item.price) * item.quantity;
+                    html = `<table class="table align-middle mb-3">
+                        <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th><th></th></tr></thead><tbody>`;
+                    for (let id in cart) {
+                        const item = cart[id];
+                        const subtotal = item.price * item.quantity;
                         total += subtotal;
                         html += `<tr>
                             <td>${item.name}</td>
-                            <td>£${Number(item.price).toFixed(2)}</td>
+                            <td>£${item.price.toFixed(2)}</td>
                             <td>${item.quantity}</td>
                             <td>£${subtotal.toFixed(2)}</td>
-                            <td><button class="btn btn-sm btn-danger remove-cart-item" data-product="${productId}">Remove</button></td>
+                            <td><button class="btn btn-sm btn-danger remove-item" data-id="${id}">✕</button></td>
                         </tr>`;
                     }
-                    html += `</tbody></table>`;
+                    html += '</tbody></table>';
                 }
-
                 cartItemsContainer.innerHTML = html;
-                cartTotalEl.textContent = `£${total.toFixed(2)}`;
-
-                // Remove item event
-                document.querySelectorAll('.remove-cart-item').forEach(btn => {
-                    btn.addEventListener('click', () => {
+                cartTotalEl.textContent = '£' + total.toFixed(2);
+                document.querySelectorAll('.remove-item').forEach(btn => {
+                    btn.onclick = () => {
                         const cart = getCart();
-                        delete cart[btn.dataset.product];
+                        delete cart[btn.dataset.id];
                         saveCart(cart);
                         renderCart();
                         updateCartCount();
-                        setupProductCards();
-                    });
+                        setupCards();
+                    };
                 });
             };
 
-            setupProductCards();
-            updateCartCount();
+            // Filter products by category or offer
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterButtons.forEach(b => b.classList.remove('active', 'btn-primary'));
+                    btn.classList.add('active', 'btn-primary');
+                    const filter = btn.dataset.filter;
+                    document.querySelectorAll('.product-card').forEach(card => {
+                        const cat = card.dataset.category;
+                        const offer = card.dataset.offer;
+                        card.style.display =
+                            filter === 'all' ? '' :
+                            filter === 'offer' ? (offer === '1' ? '' : 'none') :
+                            (cat === filter ? '' : 'none');
+                    });
+                });
+            });
 
-            viewCartBtn.addEventListener('click', () => {
+            setupCards();
+            updateCartCount();
+            viewCartBtn.onclick = () => {
                 renderCart();
                 new bootstrap.Modal(document.getElementById('cartModal')).show();
-            });
+            };
         });
-        </script>
-
-    </x-app-layout>
+    </script>
+</x-app-layout>
