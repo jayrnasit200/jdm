@@ -47,4 +47,8 @@ class CartController extends Controller
 
         return response()->json(['success' => true]);
     }
+    public function checkout($shopid)
+    {
+        return view('shops.checkout', compact('shopid'));
+    }
 }

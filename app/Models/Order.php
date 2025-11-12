@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,20 +21,11 @@ class Order extends Model
         'payment_status',
     ];
 
-    // Each order belongs to one shop
-    public function shop()
+    // Relationship to order products
+    public function orderProducts()
     {
-        return $this->belongsTo(Shop::class, 'shop_id');
+        return $this->hasMany(OrderProduct::class, 'orders_id', 'id');
     }
 
-    // Optional: each order belongs to one seller (if you have a Seller model)
-    public function seller()
-    {
-        return $this->belongsTo(User::class, 'sellar_id');
-    }
-    public function orders()
-{
-    return $this->hasMany(Order::class, 'shop_id', 'id');
-}
 
 }

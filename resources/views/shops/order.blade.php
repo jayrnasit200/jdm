@@ -1,5 +1,19 @@
 <x-app-layout>
     <main class="container py-5">
+        <div class="row mb-3">
+            <!-- Search input on the left -->
+            <div class="col-12 col-md-3 mb-2 mb-md-0 d-flex justify-content-start">
+                <input type="text" id="productSearch" class="form-control w-100" placeholder="Search products...">
+            </div>
+            <div class="col-12 col-md-3 mb-2 mb-md-0 d-flex justify-content-start">
+            </div>
+            <!-- Cart button on the right -->
+            <div class="col-12 col-md-6 d-flex justify-content-md-end">
+                <button id="viewCartBtn" class="btn btn-dark rounded-pill">
+                    🛒 View Cart <span id="cartCount" class="badge bg-light text-dark">0</span>
+                </button>
+            </div>
+        </div>
 
         <!-- Header with View Cart Button -->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
@@ -7,11 +21,7 @@
                 <h1 class="display-5 mb-0">Shop Products</h1>
                 <p class="lead mb-0">Explore our full range of goods and special offers</p>
             </div>
-            <div class="text-end mt-3 mt-md-0">
-                <button id="viewCartBtn" class="btn btn-dark rounded-pill">
-                    🛒 View Cart <span id="cartCount" class="badge bg-light text-dark">0</span>
-                </button>
-            </div>
+
         </div>
 
         <!-- Category Filter Buttons -->
@@ -64,7 +74,7 @@
                         @endif
 
                         <!-- Clickable Image (opens modal) -->
-                        <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://via.placeholder.com/300x200?text=No+Image' }}"
+                        <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://media.licdn.com/dms/image/v2/D4D0BAQH6Mvw_HQhbtg/company-logo_200_200/B4DZXHz0dTH4AI-/0/1742814005705/jdm_distributors_logo?e=2147483647&v=beta&t=w9nO0U2WNKxgnvJKZgVaEDsOoELjbbix2y_6NeSOh5o' }}"
                              class="card-img-top product-detail-trigger"
                              style="height:180px;object-fit:cover;cursor:pointer"
                              alt="{{ $product->name }}"
@@ -149,7 +159,8 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Close</button>
-                    <a href="{{ url('cart.checkout') }}" class="btn btn-primary rounded-pill">Proceed to Checkout</a>
+                    <a href="{{ route('checkout', ['shopid' => $shopid ?? 1]) }}" class="btn btn-primary rounded-pill">
+                        Proceed to Checkout</a>
                 </div>
             </div>
         </div>
@@ -285,5 +296,45 @@
                 new bootstrap.Modal(document.getElementById('cartModal')).show();
             };
         });
+        const searchInput = document.getElementById('productSearch');
+
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+    document.querySelectorAll('.product-card').forEach(card => {
+        const name = card.querySelector('.card-title').textContent.toLowerCase();
+        const category = card.dataset.category.toLowerCase();
+        if (name.includes(query) || category.includes(query)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+const filterProducts = () => {
+    const query = searchInput.value.toLowerCase();
+    const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+
+    document.querySelectorAll('.product-card').forEach(card => {
+        const name = card.querySelector('.card-title').textContent.toLowerCase();
+        const category = card.dataset.category.toLowerCase();
+        const offer = card.dataset.offer;
+
+        let matchesFilter =
+            activeFilter === 'all' ? true :
+            activeFilter === 'offer' ? offer === '1' :
+            category === activeFilter.toLowerCase();
+
+        let matchesSearch = name.includes(query) || category.includes(query);
+
+        card.style.display = matchesFilter && matchesSearch ? '' : 'none';
+    });
+};
+
+// Call filterProducts() whenever search input changes or filter button clicked
+searchInput.addEventListener('input', filterProducts);
+filterButtons.forEach(btn => {
+    btn.addEventListener('click', filterProducts);
+});
+
     </script>
 </x-app-layout>

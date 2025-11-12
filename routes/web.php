@@ -10,6 +10,7 @@ use App\Http\Controllers\SubCustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\CartController;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -70,12 +71,16 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/shop', [OrderController::class, 'index'])->name('shop.index');
     Route::get('/shop/{id}', [OrderController::class, 'show'])->name('shop.show');
     Route::get('/orders/create/{shop_id}', [OrderController::class, 'productorder'])->name('orders.create');
-    Route::post('/orders/add-product', [OrderController::class, 'addProduct'])->name('orders.addProduct');
+    Route::post('/checkout/{shopid}', [OrderController::class, 'placeOrder'])->name('checkout.place');
+    Route::get('/orders/{id}', [OrderController::class, 'orderDetails'])->name('order.details');
 
     // cart
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
+    Route::get('/checkout/{shopid}', [CartController::class, 'checkout'])->name('checkout');
+
+
 
 
 });
