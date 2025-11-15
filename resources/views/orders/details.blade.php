@@ -18,14 +18,21 @@
                 <p><strong>Total:</strong> £{{ number_format($order->total, 2) }}</p>
                 <p><strong>Payment Status:</strong> {{ ucfirst($order->payment_status) }}</p>
                 <p><strong>Created At:</strong> {{ $order->created_at->format('d M Y, H:i') }}</p>
+
+                {{-- ⭐ Added Comments Section --}}
+                <p><strong>Comments About Your Order:</strong><br>
+                    {{ $order->comments_about_your_order ? $order->comments_about_your_order : 'No comments provided.' }}
+                </p>
             </div>
         </div>
 
         <h4 class="mb-3">Products in this Order</h4>
+
         <div class="table-responsive">
             <table class="table table-bordered align-middle">
                 <thead>
                     <tr>
+                        <th>model_number</th>
                         <th>Product</th>
                         <th>Price (£)</th>
                         <th>Quantity</th>
@@ -35,6 +42,7 @@
                 <tbody>
                     @foreach($orderProducts as $item)
                         <tr>
+                            <td>{{ $item->product->model_number ?? 'Deleted Product' }}</td>
                             <td>{{ $item->product->name ?? 'Deleted Product' }}</td>
                             <td>£{{ number_format($item->selling_price, 2) }}</td>
                             <td>{{ $item->quantity }}</td>
@@ -49,8 +57,18 @@
             Grand Total: £{{ number_format($order->total, 2) }}
         </div>
 
-        <div class="mt-4">
+        <div class="mt-4 d-flex justify-content-between">
+            <a href="{{ route('orders.invoice', $order->id) }}" class="btn btn-success rounded-pill">
+                Download Invoice PDF
+            </a>
+            <a href="{{ route('orders.export', $order->id) }}" class="btn btn-success rounded-pill">
+                Download Excel
+            </a>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between">
             <a href="{{ url('/') }}" class="btn btn-secondary rounded-pill">Back to Home</a>
+
         </div>
 
     </main>

@@ -73,6 +73,8 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/orders/create/{shop_id}', [OrderController::class, 'productorder'])->name('orders.create');
     Route::post('/checkout/{shopid}', [OrderController::class, 'placeOrder'])->name('checkout.place');
     Route::get('/orders/{id}', [OrderController::class, 'orderDetails'])->name('order.details');
+    Route::get('/orders/{id}/export', [OrderController::class, 'exportOrder'])->name('orders.export');
+    Route::get('/orders/{id}/invoice', [OrderController::class, 'generateInvoice'])->name('orders.invoice');
 
     // cart
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');

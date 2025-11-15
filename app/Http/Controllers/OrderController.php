@@ -7,6 +7,10 @@ use App\Models\Shop;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderProduct;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\OrderExport;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class OrderController extends Controller
 {
@@ -35,6 +39,8 @@ class OrderController extends Controller
     public function placeOrder(Request $request, $shopid)
     {
         try {
+            $comments = $request->input('comments_about_your_order');
+
             // Decode cart_data properly (JSON)
             $cartData = $request->input('cart_data');
 
@@ -46,6 +52,7 @@ class OrderController extends Controller
                 'sellar_id' => auth()->id(),
                 'shop_id' => $shopid,
                 'invoice_number' => 'INV-' . time(),
+                'comments_about_your_order' => $comments,
                 'total' => collect($cartData)->sum(fn($item) => $item['price'] * $item['quantity']),
                 'payment_status' => 'padding',
             ]);
@@ -89,6 +96,31 @@ class OrderController extends Controller
             'orderProducts' => $order->orderProducts
         ]);
     }
+    public function exportOrder($id)
+    {
 
+    $order = Order::with('orderProducts.product', 'shop')->findOrFail($id);
 
+    $shopRef = $order->shop->ref ?? 'shop';
+    $dateTime = now()->format('Ymd_His'); // e.g. 20251112_202210
+    $fileName = $shopRef . '_' . $dateTime . '.xlsx';
+    return Excel::download(new OrderExport($order), $fileName);
+    }
+
+    public function generateInvoice($id)
+    {
+        $order = Order::with(['orderProducts.product', 'shop'])->findOrFail($id);
+
+        $pdf = Pdf::loadView('orders.invoice', [
+            'order' => $order,
+            'shop' => $order->shop,
+            'orderProducts' => $order->orderProducts
+        ])->setPaper('a4', 'portrait');
+
+        $shopRef = $order->shop->ref ?? 'shop';
+        $dateTime = now()->format('Ymd_His');
+        $fileName = "Invoice_{$shopRef}_{$dateTime}.pdf";
+
+        return $pdf->download($fileName);
+    }
 }
