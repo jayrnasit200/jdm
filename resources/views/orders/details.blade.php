@@ -57,12 +57,25 @@
             Grand Total: £{{ number_format($order->total, 2) }}
         </div>
 
-        <div class="mt-4 d-flex justify-content-between">
+        {{-- <div class="mt-4 d-flex justify-content-between">
             <a href="{{ route('orders.invoice', $order->id) }}" class="btn btn-success rounded-pill">
                 Download Invoice PDF
             </a>
             <a href="{{ route('orders.export', $order->id) }}" class="btn btn-success rounded-pill">
                 Download Excel
+            </a>
+        </div> --}}
+        <div class="mt-4 d-flex justify-content-between">
+            <a href="{{ route('orders.invoice', $order->id) }}" class="btn btn-success rounded-pill">
+                Download Invoice PDF
+            </a>
+
+            <a href="{{ route('orders.export', $order->id) }}" class="btn btn-success rounded-pill">
+                Download Excel
+            </a>
+
+            <a href="{{ route('orders.sendEmail', $order->id) }}" class="btn btn-primary rounded-pill">
+                📧 Send to Email
             </a>
         </div>
 

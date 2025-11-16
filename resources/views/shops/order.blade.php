@@ -85,7 +85,11 @@
                             <h6 class="card-title text-truncate">{{ $product->name }}</h6>
                             <p class="card-text fw-bold mb-2">
                                 £{{ number_format($product->price, 2) }}
-                                <small class="text-muted d-block">incl. VAT £{{ number_format($priceWithVat, 2) }}</small>
+                                @if ($product->vat == "yes")
+                                <small class="text-muted d-block">+ VAT</small>
+
+                                @endif
+
                             </p>
 
                             <div class="mt-auto d-flex justify-content-center align-items-center gap-2">

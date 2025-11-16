@@ -10,15 +10,15 @@ use App\Models\OrderProduct;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\OrderExport;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
     public function index() {
         $shops = Shop::all();
-
         return view('shops.listshop', compact('shops'));
     }
+
     public function show($id)
     {
         $shop = Shop::with('orders')->findOrFail($id);
@@ -31,17 +31,17 @@ class OrderController extends Controller
 
         return view('shops.show', compact('shop', 'totalSales', 'pendingSales', 'yearSales'));
     }
+
     public function productorder($shopid)
     {
         $products = Product::with('category')->get();
         return view('shops.order', compact('shopid','products'));
     }
+
     public function placeOrder(Request $request, $shopid)
     {
         try {
             $comments = $request->input('comments_about_your_order');
-
-            // Decode cart_data properly (JSON)
             $cartData = $request->input('cart_data');
 
             if (!$cartData || count($cartData) === 0) {
@@ -57,13 +57,9 @@ class OrderController extends Controller
                 'payment_status' => 'padding',
             ]);
 
-            // This is fine
-            $orderId = $order->id; // ✅ works now
-
-            // Save products
             foreach ($cartData as $item) {
                 OrderProduct::create([
-                    'orders_id' => $orderId,
+                    'orders_id' => $order->id,
                     'products_id' => $item['id'],
                     'selling_price' => $item['price'],
                     'discount' => $item['discount'] ?? 0,
@@ -96,15 +92,16 @@ class OrderController extends Controller
             'orderProducts' => $order->orderProducts
         ]);
     }
+
     public function exportOrder($id)
     {
+        $order = Order::with('orderProducts.product', 'shop')->findOrFail($id);
 
-    $order = Order::with('orderProducts.product', 'shop')->findOrFail($id);
+        $shopRef = $order->shop->ref ?? 'shop';
+        $dateTime = now()->format('Ymd_His');
+        $fileName = $shopRef . '_' . $dateTime . '.xlsx';
 
-    $shopRef = $order->shop->ref ?? 'shop';
-    $dateTime = now()->format('Ymd_His'); // e.g. 20251112_202210
-    $fileName = $shopRef . '_' . $dateTime . '.xlsx';
-    return Excel::download(new OrderExport($order), $fileName);
+        return Excel::download(new OrderExport($order), $fileName);
     }
 
     public function generateInvoice($id)
@@ -123,4 +120,61 @@ class OrderController extends Controller
 
         return $pdf->download($fileName);
     }
+
+    public function sendEmail($id)
+    {
+        $order = Order::with(['orderProducts.product', 'shop'])->findOrFail($id);
+
+        $shopRef = $order->shop->ref ?? 'shop';
+        $dateTime = now()->format('Ymd_His');
+
+        $pdfFileName = "Invoice_{$shopRef}_{$dateTime}.pdf";
+        $excelFileName = "{$shopRef}_{$dateTime}.xlsx";
+
+        // ---------------- PDF ----------------
+        $pdf = Pdf::loadView('orders.invoice', [
+            'order' => $order,
+            'shop' => $order->shop,
+            'orderProducts' => $order->orderProducts
+        ])->setPaper('a4', 'portrait');
+
+        // Ensure folder exists
+        if (!is_dir(storage_path('app/public'))) {
+            mkdir(storage_path('app/public'), 0755, true);
+        }
+
+        $pdfPath = storage_path("app/public/{$pdfFileName}");
+        $pdf->save($pdfPath);
+
+        // ---------------- Excel ----------------
+        $excelPath = storage_path("app/public/{$excelFileName}");
+        Excel::store(new OrderExport($order), $excelFileName, 'public');
+
+        if (!file_exists($excelPath)) {
+            return back()->with('error', "Excel file not found at: {$excelPath}");
+        }
+
+        // ---------------- Email ----------------
+        // Send to your desired email address
+        // $email = 'r9638527415@gmail.com';
+        $emails = sys_config('email');
+
+        Mail::raw('Please find your Invoice (PDF) and Excel attached.', function ($message) use ($emails, $pdfPath, $pdfFileName, $excelPath, $excelFileName) {
+            $message->to($emails) // <- use the correct variable here
+                ->subject('Your Invoice from JDM Distributors')
+                ->attach($pdfPath, [
+                    'as' => $pdfFileName,
+                    'mime' => 'application/pdf'
+                ])
+                ->attach($excelPath, [
+                    'as' => $excelFileName,
+                    'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                ]);
+        });
+
+
+        return back()->with('success', "Invoice and Excel sent successfully !");
+    }
+
+
 }

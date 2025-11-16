@@ -75,6 +75,7 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/orders/{id}', [OrderController::class, 'orderDetails'])->name('order.details');
     Route::get('/orders/{id}/export', [OrderController::class, 'exportOrder'])->name('orders.export');
     Route::get('/orders/{id}/invoice', [OrderController::class, 'generateInvoice'])->name('orders.invoice');
+    Route::get('/orders/{id}/send-email', [OrderController::class, 'sendEmail'])->name('orders.sendEmail');
 
     // cart
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');

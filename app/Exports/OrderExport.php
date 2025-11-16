@@ -20,14 +20,12 @@ class OrderExport implements FromArray, WithEvents
     {
         $data = [];
 
-        // Shop details
         $shop = $this->order->shop;
         $data[] = ['Shop Name', $shop->name ?? ''];
         $data[] = ['Company Name', $shop->company_name ?? ''];
         $data[] = ['Reference', $shop->ref ?? ''];
         $data[] = []; // empty row
 
-        // Order details
         $data[] = ['Order ID', '#'.$this->order->id];
         $data[] = ['Invoice Number', $this->order->invoice_number];
         $data[] = ['Total', '£'.number_format($this->order->total, 2)];
@@ -38,7 +36,6 @@ class OrderExport implements FromArray, WithEvents
         // Product table header
         $data[] = ['Product', 'Model Number', 'Price (£)', 'Quantity', 'Subtotal (£)'];
 
-        // Products
         foreach ($this->order->orderProducts as $item) {
             $data[] = [
                 $item->product->name ?? 'Deleted Product',
@@ -49,7 +46,6 @@ class OrderExport implements FromArray, WithEvents
             ];
         }
 
-        // Grand total at bottom
         $data[] = [];
         $data[] = ['Grand Total', '', '', '', $this->order->total];
 

@@ -150,6 +150,7 @@
         <thead>
         <tr>
             <th>Quantity</th>
+            <th>`code</th>
             <th>Description</th>
             <th>Unit Price</th>
             <th>Disc</th>
@@ -170,7 +171,9 @@
 
             <tr>
                 <td>{{ $item->quantity }}</td>
+                <td>{{ $item->product->model_number }}</td>
                 <td>{{ $item->product->name }}</td>
+
                 <td align="right">{{ number_format($item->selling_price, 2) }}</td>
                 <td align="right">{{ number_format($discount, 2) }}</td>
                 <td align="right">{{ number_format($net, 2) }}</td>
