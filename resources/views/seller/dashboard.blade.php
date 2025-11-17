@@ -30,7 +30,7 @@
                                             @endif
                                         </a>
                                     </div>
-                                    
+
                                     <div class="card-body text-center p-2">
                                         <h6 class="fw-bold product-name" title="{{ $product->name }}">
                                             {{ Str::limit($product->name, 40) }}
@@ -48,7 +48,7 @@
                                             @endphp
                                             <span class="text-muted small"> £{{$priceWithVat}}</span>
                                         </div>
-                                        
+
                                         {{-- <span class="text-success fw-semibold d-block mt-1">£{{ number_format($product->price, 2) }}</span>
                                         <span class="text-muted d-block">withvat</span> --}}
 
@@ -58,7 +58,7 @@
                                             <input type="text" id="qty-{{ $product->id }}" class="form-control form-control-sm mx-1 text-center" style="width: 40px;" value="1" readonly>
                                             <button class="btn btn-sm btn-outline-secondary plus-btn" data-id="{{ $product->id }}">+</button>
                                             <button class="btn btn-sm btn-primary m-1 add-to-cart-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i></button>
-                                        
+
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@
         }
 
         .btn-outline-secondary {
-            padding: 0.25rem 0.5rem;
+            Pending: 0.25rem 0.5rem;
             font-size: 0.8rem;
         }
 

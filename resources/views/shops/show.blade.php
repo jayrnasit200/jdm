@@ -41,7 +41,7 @@
                     <div class="card text-white bg-info shadow-sm border-0">
                         <div class="card-body text-center">
                             <h5 class="card-title">Total Sales (This Year)</h5>
-                            <h3 class="fw-bold mt-2">${{ number_format($yearSales, 2) }}</h3>
+                            <h3 class="fw-bold mt-2">£{{ number_format($yearSales, 2) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                     <div class="card text-white bg-success shadow-sm border-0">
                         <div class="card-body text-center">
                             <h5 class="card-title">All-Time Sales</h5>
-                            <h3 class="fw-bold mt-2">${{ number_format($totalSales, 2) }}</h3>
+                            <h3 class="fw-bold mt-2">£{{ number_format($totalSales, 2) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
                     <div class="card text-white bg-danger shadow-sm border-0">
                         <div class="card-body text-center">
                             <h5 class="card-title">Pending Payments</h5>
-                            <h3 class="fw-bold mt-2">${{ number_format($pendingSales, 2) }}</h3>
+                            <h3 class="fw-bold mt-2">£{{ number_format($pendingSales, 2) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -84,9 +84,10 @@
                                     <th>#</th>
                                     <th>Date</th>
                                     <th>Invoice</th>
-                                    <th>Comments</th>
+                                    {{-- <th>Comments</th> --}}
                                     <th>Status</th>
                                     <th>Total</th>
+                                    <th>View</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -95,17 +96,22 @@
                                         <td>{{ $order->id }}</td>
                                         <td>{{ $order->created_at->format('d M Y') }}</td>
                                         <td>{{ $order->invoice_number }}</td>
-                                        <td>{{ Str::limit($order->comments_about_your_order, 30) ?? '—' }}</td>
+                                        {{-- <td>{{ Str::limit($order->comments_about_your_order, 30) ?? '—' }}</td> --}}
                                         <td>
                                             @if ($order->payment_status === 'success')
                                                 <span class="badge bg-success">Success</span>
-                                            @elseif ($order->payment_status === 'padding')
+                                            @elseif ($order->payment_status === 'Pending')
                                                 <span class="badge bg-warning text-dark">Pending</span>
                                             @else
                                                 <span class="badge bg-secondary">Other</span>
                                             @endif
                                         </td>
-                                        <td>${{ number_format($order->total, 2) }}</td>
+                                        <td>£{{ number_format($order->total, 2) }}</td>
+                                        <td> <a href="{{ route('order.details', $order->id) }}" class="btn btn-primary">
+                                            <i class='fa fa-arrow-right'></i>
+                                        </a>
+
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>

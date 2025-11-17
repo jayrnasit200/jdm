@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('net_total', 10, 2)->nullable();
             $table->decimal('Vat', 10, 2)->nullable();
             $table->decimal('total', 10, 2)->nullable();
-            $table->enum('payment_status',['padding','success'])->default('padding');
+            $table->enum('payment_status',['Pending','success'])->default('Pending');
             $table->timestamps();
 
         });

@@ -30,7 +30,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .content-wrapper {
-            padding: 2rem 1rem;
+            Pending: 2rem 1rem;
         }
     </style>
 </head>
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function() {
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .content-wrapper {
-            padding: 2rem 1rem;
+            Pending: 2rem 1rem;
         }
     </style>
 </head>

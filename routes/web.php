@@ -76,7 +76,17 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/orders/{id}/export', [OrderController::class, 'exportOrder'])->name('orders.export');
     Route::get('/orders/{id}/invoice', [OrderController::class, 'generateInvoice'])->name('orders.invoice');
     Route::get('/orders/{id}/send-email', [OrderController::class, 'sendEmail'])->name('orders.sendEmail');
+    Route::get('/orders/{id}/manage', [OrderController::class, 'manageOrder'])->name('order.manage');
+    Route::post('/orders/{id}/update-status', [OrderController::class, 'updatePaymentStatus'])->name('order.updateStatus');
+    Route::post('/orders/{id}/upload-invoice', [OrderController::class, 'uploadInvoice'])->name('order.uploadInvoice');
+    Route::post('/orders/{id}/add-product', [OrderController::class, 'addProductToOrder'])->name('order.addProduct');
+    Route::post('/orders/{order}/update-item', [OrderController::class, 'updateItem'])->name('order.updateItem');
 
+// Remove product
+// Route::delete('/orders/{id}/remove-product/{productId}', [OrderController::class, 'removeProductFromOrder'])->name('order.removeProduct');
+Route::delete('/orders/{order}/remove-product/{product}', [OrderController::class, 'removeProductFromOrder'])
+    ->name('order.removeProductFromOrder')
+    ->middleware(['auth', 'role:seller']); // optional
     // cart
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');

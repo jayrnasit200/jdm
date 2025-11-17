@@ -124,7 +124,8 @@
 
         <div class="details-box">
             <div class="bill-title">Bill To:</div>
-            <strong>{{ $order->shop->name ?? 'N/A' }}</strong><br>
+            <strong>{{ $order->shop->company_name ?? 'N/A' }}</strong><br>
+            {{ $order->shop->shopname ?? '' }}<br>
             {{ $order->shop->address ?? '' }}<br>
             {{ $order->shop->city ?? '' }}<br>
             {{ $order->shop->postcode ?? '' }}

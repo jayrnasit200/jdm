@@ -19,18 +19,23 @@ class OrderController extends Controller
         return view('shops.listshop', compact('shops'));
     }
 
-    public function show($id)
-    {
-        $shop = Shop::with('orders')->findOrFail($id);
 
-        $totalSales = $shop->orders->sum('total');
-        $pendingSales = $shop->orders->where('payment_status', 'padding')->sum('total');
-        $yearSales = $shop->orders
-            ->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()])
-            ->sum('total');
 
-        return view('shops.show', compact('shop', 'totalSales', 'pendingSales', 'yearSales'));
-    }
+        public function show($id)
+        {
+            // Load the shop and its orders only
+            $shop = Shop::with('orders')->findOrFail($id);
+
+            // Totals based on this shop's orders
+            $totalSales = $shop->orders->sum('total');
+            $pendingSales = $shop->orders->where('payment_status', 'Pending')->sum('total');
+            $yearSales = $shop->orders
+                ->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()])
+                ->sum('total');
+
+            return view('shops.show', compact('shop', 'totalSales', 'pendingSales', 'yearSales'));
+        }
+
 
     public function productorder($shopid)
     {
@@ -54,7 +59,7 @@ class OrderController extends Controller
                 'invoice_number' => 'INV-' . time(),
                 'comments_about_your_order' => $comments,
                 'total' => collect($cartData)->sum(fn($item) => $item['price'] * $item['quantity']),
-                'payment_status' => 'padding',
+                'payment_status' => 'Pending',
             ]);
 
             foreach ($cartData as $item) {
@@ -175,6 +180,106 @@ class OrderController extends Controller
 
         return back()->with('success', "Invoice and Excel sent successfully !");
     }
+
+// Show manage order page
+public function manageOrder($id)
+{
+    $order = Order::with('orderProducts.product')->findOrFail($id);
+    $products = Product::all(); // To allow adding new products
+    return view('orders.manage', compact('order', 'products'));
+}
+
+// Update payment status
+public function updatePaymentStatus(Request $request, $id)
+{
+    $order = Order::findOrFail($id);
+    $order->payment_status = $request->payment_status;
+    $order->save();
+    return back()->with('success', 'Payment status updated!');
+}
+
+// Upload invoice image
+public function uploadInvoice(Request $request, $id)
+{
+    $request->validate([
+        'invoice_image' => 'required|image|max:2048'
+    ]);
+
+    $order = Order::findOrFail($id);
+
+    if ($request->hasFile('invoice_image')) {
+        $path = $request->file('invoice_image')->store('invoices', 'public');
+        $order->invoice_image = $path;
+        $order->save();
+    }
+
+    return back()->with('success', 'Invoice uploaded successfully!');
+}
+
+// Add product to order
+public function addProductToOrder(Request $request, $id)
+{
+    $request->validate([
+        'product_id' => 'required|exists:products,id',
+        'quantity' => 'required|integer|min:1'
+    ]);
+
+    $order = Order::findOrFail($id);
+
+    OrderProduct::create([
+        'orders_id' => $order->id,
+        'products_id' => $request->product_id,
+        'selling_price' => Product::find($request->product_id)->price,
+        'quantity' => $request->quantity
+    ]);
+
+    return back()->with('success', 'Product added to order!');
+}
+
+// Remove product from order
+public function removeProductFromOrder($orderId, $productId)
+{
+    $orderProduct = OrderProduct::where('orders_id', $orderId)
+                                ->where('products_id', $productId)
+                                ->first();
+
+    if ($orderProduct) {
+        $orderProduct->delete();
+        return back()->with('success', 'Product removed from order.');
+    }
+
+    return back()->with('error', 'Product not found in this order.');
+}
+public function updateItem(Request $request, Order $order)
+{
+    $productId = $request->input('product_id');
+    $price = $request->input('price');
+    $quantity = $request->input('quantity');
+
+    // Find the order product
+    $orderProduct = $order->orderProducts()->where('products_id', $productId)->first();
+    if(!$orderProduct) {
+        return response()->json(['error' => 'Product not found in order'], 404);
+    }
+
+    // Update price & quantity
+    $orderProduct->selling_price = $price;
+    $orderProduct->quantity = $quantity;
+    $orderProduct->save();
+
+    // Recalculate order total
+    $total = $order->orderProducts()->sum(function($item) {
+        return $item->selling_price * $item->quantity;
+    });
+
+    $order->total = $total;
+    $order->save();
+
+    return response()->json([
+        'success' => true,
+        'order_total' => $total
+    ]);
+}
 
 
 }

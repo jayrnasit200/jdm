@@ -32,7 +32,7 @@
             margin-bottom: 25px;
         }
         a {
-            padding: 10px 18px;
+            Pending: 10px 18px;
             background: #3b82f6;
             color: #fff;
             border-radius: 8px;
