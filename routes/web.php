@@ -17,9 +17,9 @@ Route::get('/', function () {
     return view('under-development');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -34,7 +34,12 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:seller'])->group(function () {
-    Route::get('/seller', [SellerController::class, 'index'])->name('seller.dashboard');
+    Route::get('/dashboard', [SellerController::class, 'index'])->name('seller.dashboard');
+    Route::get('/seller/product-report', [SellerController::class, 'productReport'])
+    ->name('seller.product-report');
+    Route::get('/seller/products-report-pdf', [SellerController::class, 'productsReportPdf'])
+    ->name('seller.products.report.pdf');
+
     Route::get('/category', [CategoryController::class, 'index'])->name('category');
     Route::get('/categories.create', [CategoryController::class, 'create'])->name('categories.create');
     Route::post('/categories.store', [CategoryController::class, 'store'])->name('categories.store');
@@ -79,7 +84,7 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/orders/{id}/manage', [OrderController::class, 'manageOrder'])->name('order.manage');
     Route::post('/orders/{id}/update-status', [OrderController::class, 'updatePaymentStatus'])->name('order.updateStatus');
     Route::post('/orders/{id}/upload-invoice', [OrderController::class, 'uploadInvoice'])->name('order.uploadInvoice');
-    Route::post('/orders/{id}/add-product', [OrderController::class, 'addProductToOrder'])->name('order.addProduct');
+    Route::post('/orders/{id}/add-product', [OrderController::class, 'addProduct'])->name('order.addProduct');
     Route::post('/orders/{order}/update-item', [OrderController::class, 'updateItem'])->name('order.updateItem');
 
 // Remove product

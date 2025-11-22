@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\OrderExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -49,40 +50,106 @@ class OrderController extends Controller
             $comments = $request->input('comments_about_your_order');
             $cartData = $request->input('cart_data');
 
-            if (!$cartData || count($cartData) === 0) {
+            // If you send JSON via fetch: cart_data is already an array
+            // If you ever send JSON string instead, uncomment this:
+            // if (is_string($cartData)) {
+            //     $cartData = json_decode($cartData, true) ?? [];
+            // }
+
+            if (!$cartData || !is_array($cartData) || count($cartData) === 0) {
                 return response()->json(['success' => false, 'message' => 'Cart is empty']);
             }
 
+            $vatRate = sys_config('vat') ?? 0; // e.g. 20
+
+            $orderTotal = 0;
+            $orderItems = [];
+
+            foreach ($cartData as $item) {
+                // basic safety
+                if (empty($item['id'])) {
+                    continue;
+                }
+
+                $product = Product::find($item['id']);
+                if (!$product) {
+                    continue; // product deleted or invalid
+                }
+
+                $qty = (int)($item['quantity'] ?? 1);
+                if ($qty < 1) {
+                    $qty = 1;
+                }
+
+                // Base price (EX VAT) – use frontend edited price if present, else DB price
+                $basePriceExVat = isset($item['price'])
+                    ? (float)$item['price']
+                    : (float)$product->price;
+
+                // Check VAT from DB
+                $vatFlag = ($product->vat === 'yes');
+
+                if ($vatFlag) {
+                    $unitVat   = $basePriceExVat * $vatRate / 100;
+                    $unitGross = $basePriceExVat + $unitVat; // price including VAT
+                } else {
+                    $unitVat   = 0;
+                    $unitGross = $basePriceExVat;            // same as ex-VAT
+                }
+
+                $lineTotal = $unitGross * $qty;
+                $orderTotal += $lineTotal;
+
+                // keep item data to insert after order is created
+                $orderItems[] = [
+                    'products_id' => $product->id,
+                    'selling_price' => $unitGross,                 // 👈 unit price INCLUDING VAT
+                    'quantity' => $qty,
+                    'discount' => $item['discount'] ?? 0,          // if you send discount
+                    // optional extra fields if your table has them:
+                    // 'price_ex_vat' => $basePriceExVat,
+                    // 'vat_rate' => $vatFlag ? $vatRate : 0,
+                    // 'vat_amount_per_unit' => $unitVat,
+                    // 'line_total' => $lineTotal,
+                ];
+            }
+
+            if (empty($orderItems)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid products in cart',
+                ]);
+            }
+
+            // Create order with TOTAL including VAT
             $order = Order::create([
                 'sellar_id' => auth()->id(),
                 'shop_id' => $shopid,
                 'invoice_number' => 'INV-' . time(),
                 'comments_about_your_order' => $comments,
-                'total' => collect($cartData)->sum(fn($item) => $item['price'] * $item['quantity']),
+                'total' => round($orderTotal, 2),      // 👈 total INCLUDING VAT
                 'payment_status' => 'Pending',
             ]);
 
-            foreach ($cartData as $item) {
-                OrderProduct::create([
-                    'orders_id' => $order->id,
-                    'products_id' => $item['id'],
-                    'selling_price' => $item['price'],
-                    'discount' => $item['discount'] ?? 0,
-                    'quantity' => $item['quantity'] ?? 1,
-                ]);
+            // Insert order_products rows
+            foreach ($orderItems as $row) {
+                $row['orders_id'] = $order->id;
+                OrderProduct::create($row);
             }
 
             return response()->json([
                 'success' => true,
-                'order_id' => $order->id
+                'order_id' => $order->id,
             ]);
+
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
         }
     }
+
 
     public function orderDetails($id)
     {
@@ -198,88 +265,141 @@ public function updatePaymentStatus(Request $request, $id)
     return back()->with('success', 'Payment status updated!');
 }
 
-// Upload invoice image
 public function uploadInvoice(Request $request, $id)
 {
     $request->validate([
-        'invoice_image' => 'required|image|max:2048'
+        'invoice_image' => 'required|file|mimes:jpg,jpeg,png,webp,heic,pdf|max:5120', // 5 MB
     ]);
 
     $order = Order::findOrFail($id);
 
+    // 🔁 Delete old invoice file if it exists
+    if (!empty($order->invoice) && Storage::disk('public')->exists($order->invoice)) {
+        Storage::disk('public')->delete($order->invoice);
+    }
+
     if ($request->hasFile('invoice_image')) {
-        $path = $request->file('invoice_image')->store('invoices', 'public');
-        $order->invoice_image = $path;
+
+        $file      = $request->file('invoice_image');
+        $extension = $file->getClientOriginalExtension();
+
+        // Nice file name: INV_<invoice_number>_timestamp.ext
+        $fileName = 'INV_' . $order->invoice_number . '_' . time() . '.' . $extension;
+
+        // This returns a relative path like: invoices/INV_XXXX_1234567890.pdf
+        $path = $file->storeAs('invoices', $fileName, 'public');
+
+        // ✅ Save ONLY relative path in DB
+        $order->invoice = $path;
         $order->save();
     }
 
+    // If request is AJAX, return JSON with both path + usable URL
+    if ($request->expectsJson()) {
+        return response()->json([
+            'success'      => true,
+            'invoice_path' => $order->invoice,                        // e.g. invoices/INV_123.pdf
+            'invoice_url'  => asset('storage/' . $order->invoice),    // full URL for frontend
+            'message'      => 'Invoice uploaded successfully!',
+        ]);
+    }
+
+    // Normal redirect
     return back()->with('success', 'Invoice uploaded successfully!');
 }
-
-// Add product to order
-public function addProductToOrder(Request $request, $id)
+public function addProduct(Request $request, Order $order)
 {
-    $request->validate([
-        'product_id' => 'required|exists:products,id',
-        'quantity' => 'required|integer|min:1'
+    $data = $request->validate([
+        'product_id' => 'required|integer|exists:products,id',
+        'quantity'   => 'required|integer|min:1',
     ]);
 
-    $order = Order::findOrFail($id);
+    $product = Product::findOrFail($data['product_id']);
 
     OrderProduct::create([
-        'orders_id' => $order->id,
-        'products_id' => $request->product_id,
-        'selling_price' => Product::find($request->product_id)->price,
-        'quantity' => $request->quantity
+        'orders_id'   => $order->id,
+        'products_id' => $product->id,
+        'selling_price' => $product->price, // or whatever logic you use
+        'discount'    => 0,
+        'quantity'    => $data['quantity'],
     ]);
 
-    return back()->with('success', 'Product added to order!');
+    $this->refreshOrderTotals($order);
+
+    return back()->with('success', 'Product added to order.');
 }
 
-// Remove product from order
-public function removeProductFromOrder($orderId, $productId)
+public function removeProductFromOrder(Request $request, Order $order, $productId)
 {
-    $orderProduct = OrderProduct::where('orders_id', $orderId)
-                                ->where('products_id', $productId)
-                                ->first();
+    $line = OrderProduct::where('orders_id', $order->id)
+        ->where('products_id', $productId)
+        ->first();
 
-    if ($orderProduct) {
-        $orderProduct->delete();
-        return back()->with('success', 'Product removed from order.');
+    if ($line) {
+        $line->delete();
+        $this->refreshOrderTotals($order);
     }
 
-    return back()->with('error', 'Product not found in this order.');
+    if ($request->expectsJson()) {
+        return response()->json([
+            'success'     => true,
+            'order_total' => $order->total,
+        ]);
+    }
+
+    return back()->with('success', 'Product removed from order.');
 }
+
 public function updateItem(Request $request, Order $order)
 {
-    $productId = $request->input('product_id');
-    $price = $request->input('price');
-    $quantity = $request->input('quantity');
+    $data = $request->validate([
+        'product_id' => 'required|integer',
+        'price'      => 'required|numeric|min:0',
+        'quantity'   => 'required|integer|min:1',
+    ]);
 
-    // Find the order product
-    $orderProduct = $order->orderProducts()->where('products_id', $productId)->first();
-    if(!$orderProduct) {
-        return response()->json(['error' => 'Product not found in order'], 404);
-    }
+    // find the order line
+    $line = OrderProduct::where('orders_id', $order->id)
+        ->where('products_id', $data['product_id'])
+        ->firstOrFail();
 
-    // Update price & quantity
-    $orderProduct->selling_price = $price;
-    $orderProduct->quantity = $quantity;
-    $orderProduct->save();
+    $line->selling_price = $data['price'];
+    $line->quantity      = $data['quantity'];
+    $line->save();
 
-    // Recalculate order total
-    $total = $order->orderProducts()->sum(function($item) {
-        return $item->selling_price * $item->quantity;
-    });
+    // recalc totals on the parent order
+    $this->refreshOrderTotals($order);
 
-    $order->total = $total;
-    $order->save();
+    $lineTotal = $line->selling_price * $line->quantity;
 
     return response()->json([
-        'success' => true,
-        'order_total' => $total
+        'success'     => true,
+        'line_total'  => $lineTotal,
+        'order_total' => $order->total,
     ]);
 }
 
+private function refreshOrderTotals(Order $order): void
+{
+    $order->load('orderProducts'); // ensure relation loaded
 
+    $total = 0;
+    $totalDiscount = 0;
+
+    foreach ($order->orderProducts as $line) {
+        $unitPrice   = (float) $line->selling_price;
+        $unitDiscount = (float) ($line->discount ?? 0);
+        $qty         = (int) ($line->quantity ?? 0);
+
+        $lineNet = max($unitPrice - $unitDiscount, 0) * $qty;
+
+        $totalDiscount += $unitDiscount * $qty;
+        $total         += $lineNet;
+    }
+
+    $order->discount   = $totalDiscount; // if you have this column
+    $order->total      = $total;         // main total saved in orders table
+    // if you store net_total / Vat etc, set them here as well
+    $order->save();
+}
 }

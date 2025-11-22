@@ -1,38 +1,186 @@
 <x-app-layout>
-    <main class="container py-5">
-        <div class="row mb-3">
-            <!-- Search input on the left -->
-            <div class="col-12 col-md-3 mb-2 mb-md-0 d-flex justify-content-start">
-                <input type="text" id="productSearch" class="form-control w-100" placeholder="Search products...">
+
+    {{-- Page styles --}}
+    <style>
+        body {
+            background: #f3f4f6;
+        }
+
+        /* Hero with US flag in background */
+        .shop-hero {
+            position: relative;
+            border-radius: 1rem;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 15px 30px rgba(15, 23, 42, 0.25);
+            overflow: hidden;
+
+            /* Flag + dark blue overlay */
+            background-image:
+                linear-gradient(90deg, rgba(11, 60, 93, 0.94), rgba(249, 99, 99, 0.94)),
+                url("https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #ffffff;
+        }
+
+        .shop-hero::after {
+            content: "";
+            position: absolute;
+            right: -40px;
+            top: -40px;
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.2), transparent 60%);
+            opacity: 0.9;
+        }
+
+        .shop-hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .shop-hero-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .filter-pill {
+            border-radius: 999px;
+            padding-inline: 1rem;
+            padding-block: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .filter-btn.active {
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .product-card .card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            border-radius: 1rem;
+        }
+
+        .product-card .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+        }
+
+        .product-badge-offer {
+            background: linear-gradient(135deg, #dc2626, #f97316);
+            color: #fff;
+            font-size: 0.7rem;
+            border-radius: 999px;
+            padding: 0.25rem 0.6rem;
+        }
+
+        .product-price {
+            font-size: 1rem;
+        }
+
+        .product-code {
+            font-size: 0.75rem;
+            letter-spacing: 0.03em;
+        }
+
+        .cart-button-pill {
+            border-radius: 999px;
+            padding-inline: 1.4rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.25);
+        }
+
+        .cart-summary-text {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .modal-header-gradient {
+            background: linear-gradient(135deg, #111827, #1f2937);
+            color: #ffffff;
+        }
+
+        @media (max-width: 576px) {
+            .shop-hero {
+                padding: 1.2rem 1.3rem;
+            }
+
+            .shop-hero-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+
+    <main class="container py-4">
+
+        {{-- Top bar: search + cart --}}
+        <div class="row align-items-center mb-3 g-2">
+            <!-- Search input -->
+            <div class="col-12 col-md-4">
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fa fa-search text-muted"></i>
+                    </span>
+                    <input type="text"
+                           id="productSearch"
+                           class="form-control border-start-0"
+                           placeholder="Search products or categories...">
+                </div>
             </div>
-            <div class="col-12 col-md-3 mb-2 mb-md-0 d-flex justify-content-start">
-            </div>
-            <!-- Cart button on the right -->
-            <div class="col-12 col-md-6 d-flex justify-content-md-end">
-                <button id="viewCartBtn" class="btn btn-dark rounded-pill">
-                    🛒 View Cart <span id="cartCount" class="badge bg-light text-dark">0</span>
-                </button>
+
+            <!-- Spacer -->
+            <div class="col-12 col-md-2"></div>
+
+            <!-- Cart button -->
+            <div class="col-12 col-md-6 d-flex justify-content-md-end justify-content-start">
+                <div class="d-flex flex-column align-items-md-end align-items-start w-100 w-md-auto">
+                    <button id="viewCartBtn" class="btn btn-dark cart-button-pill d-flex align-items-center gap-2">
+                        <span>🛒 View Cart</span>
+                        <span id="cartCount" class="badge bg-light text-dark ms-1">0</span>
+                    </button>
+                    <span class="cart-summary-text mt-1">
+                        Review your selection and proceed to checkout when ready.
+                    </span>
+                </div>
             </div>
         </div>
 
-        <!-- Header with View Cart Button -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-            <div class="text-center flex-grow-1">
-                <h1 class="display-5 mb-0">Shop Products</h1>
-                <p class="lead mb-0">Explore our full range of goods and special offers</p>
+        {{-- Hero section with US flag background --}}
+        <div class="shop-hero mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="shop-hero-title mb-1">
+                        Shop Products
+                    </div>
+                    <div class="shop-hero-subtitle">
+                        Explore our full wholesale range, seasonal lines, and special offers – all in one place.
+                    </div>
+                </div>
+                {{-- <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
+                    <span class="badge bg-white text-dark px-3 py-2 rounded-pill shadow-sm">
+                        <i class="fa fa-truck-fast me-1"></i> Next delivery slot subject to availability
+                    </span>
+                </div> --}}
             </div>
         </div>
 
         <!-- Category Filter Buttons -->
         @php
             $categories = $products->pluck('category')->filter()->unique('id');
+            $vatRate    = sys_config('vat') ?? 0;
         @endphp
         <div class="mb-4 d-flex flex-wrap justify-content-center gap-2">
-            <button data-filter="all" class="btn btn-primary filter-btn active">All Products</button>
-            <button data-filter="offer" class="btn btn-outline-danger filter-btn">🔥 Offers</button>
+            <button data-filter="all" class="btn btn-primary filter-btn filter-pill active">
+                All Products
+            </button>
+            <button data-filter="offer" class="btn btn-outline-danger filter-btn filter-pill">
+                🔥 Offers
+            </button>
             @foreach($categories as $category)
                 @if($category && $category->name)
-                    <button data-filter="{{ $category->name }}" class="btn btn-outline-secondary filter-btn">
+                    <button data-filter="{{ $category->name }}"
+                            class="btn btn-outline-secondary filter-btn filter-pill">
                         {{ ucfirst($category->name) }}
                     </button>
                 @endif
@@ -43,113 +191,117 @@
         <div id="product-grid" class="row g-4">
             @foreach ($products as $product)
                 @php
-                    $vatRate = sys_config('vat') ?? 0;
-                    $includeVat = $product->vat === 'yes';
-
-                    $vatAmount = $includeVat ? ($product->price * $vatRate) / 100 : 0;
-                    $priceWithVat = $product->price + $vatAmount;
-
-                    // price that will go to cart
-                    $priceForCart = $includeVat ? $priceWithVat : $product->price;
+                    $includeVat   = $product->vat === 'yes';       // "yes" / "no"
+                    $priceForCart = $product->price;               // ex-VAT
 
                     $productData = [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'price' => $priceForCart,
-                        'shop_id' => $shopid ?? 1,
-                        'category' => $product->category->name ?? 'Uncategorized',
+                        'id'            => $product->id,
+                        'name'          => $product->name,
+                        'price'         => $priceForCart,                       // ex-VAT
+                        'shop_id'       => $shopid ?? 1,
+                        'category'      => $product->category->name ?? 'Uncategorized',
                         'special_offer' => $product->special_offer,
-                        'status' => $product->status
+                        'status'        => $product->status,
+                        'vat'           => $product->vat,                       // "yes" or "no"
+                        'vat_rate'      => $includeVat ? $vatRate : 0,         // e.g. 20 or 0
                     ];
                 @endphp
 
-                <div class="col-6 col-md-3 col-lg-3 product-card"
-     data-category="{{ $product->category->name ?? 'Uncategorized' }}"
-     data-offer="{{ $product->special_offer ? '1' : '0' }}"
-     data-status="{{ $product->status ?? 'active' }}"
-     data-code="{{ $product->product_code ?? '' }}">   {{-- 👈 added --}}
-    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden position-relative">
+                <div class="col-6 col-md-4 col-lg-3 product-card"
+                     data-category="{{ $product->category->name ?? 'Uncategorized' }}"
+                     data-offer="{{ $product->special_offer ? '1' : '0' }}"
+                     data-status="{{ $product->status ?? 'active' }}"
+                     data-code="{{ $product->product_code ?? '' }}">
+                    <div class="card h-100 shadow-sm border-0 overflow-hidden position-relative">
 
-        <!-- Offer & Stock Labels -->
-        @if($product->special_offer == "yes")
-            <span class="badge bg-danger position-absolute top-0 end-0 m-2">🔥 Offer</span>
-        @endif
+                        <!-- Offer Label -->
+                        @if($product->special_offer == "yes")
+                            <span class="position-absolute top-0 end-0 m-2 product-badge-offer">
+                                🔥 Offer
+                            </span>
+                        @endif
 
-        <!-- Clickable Image (opens modal) -->
-        <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://media.licdn.com/dms/image/v2/D4D0BAQH6Mvw_HQhbtg/company-logo_200_200/B4DZXHz0dTH4AI-/0/1742814005705/jdm_distributors_logo?e=2147483647&v=beta&t=w9nO0U2WNKxgnvJKZgVaEDsOoELjbbix2y_6NeSOh5o' }}"
-             class="card-img-top product-detail-trigger"
-             style="height:180px;object-fit:cover;cursor:pointer"
-             alt="{{ $product->name }}"
-             data-bs-toggle="modal"
-             data-bs-target="#productModal{{ $product->id }}">
+                        <!-- Clickable Image (opens modal) -->
+                        <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://media.licdn.com/dms/image/v2/D4D0BAQH6Mvw_HQhbtg/company-logo_200_200/B4DZXHz0dTH4AI-/0/1742814005705/jdm_distributors_logo?e=2147483647&v=beta&t=w9nO0U2WNKxgnvJKZgVaEDsOoELjbbix2y_6NeSOh5o' }}"
+                             class="card-img-top product-detail-trigger"
+                             style="height:180px;object-fit:cover;cursor:pointer"
+                             alt="{{ $product->name }}"
+                             data-bs-toggle="modal"
+                             data-bs-target="#productModal{{ $product->id }}">
 
-        <div class="card-body d-flex flex-column">
-            <h6 class="card-title text-truncate">{{ $product->name }}</h6>
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-truncate mb-1">{{ $product->name }}</h6>
 
-            {{-- 👇 product code shown under name --}}
-            @if(!empty($product->model_number))
-                <small class="text-muted d-block mb-1">
-                    Code: {{ $product->model_number }}
-                </small>
-            @endif
+                            @if(!empty($product->model_number))
+                                <small class="text-muted d-block mb-2 product-code">
+                                    Code: {{ $product->model_number }}
+                                </small>
+                            @endif
 
-            <p class="card-text fw-bold mb-2">
-                £{{ number_format($product->price, 2) }}
-                @if ($product->vat == "yes")
-                    <small class="text-muted d-block">+ VAT</small>
-                @endif
-            </p>
+                            <p class="card-text fw-bold mb-2 product-price">
+                                £{{ number_format($product->price, 2) }}
+                                @if ($product->vat == "yes")
+                                    <small class="text-muted d-block">+ VAT</small>
+                                @endif
+                            </p>
 
-            <div class="mt-auto d-flex justify-content-center align-items-center gap-2">
-                @if($product->status !== 'disable')
-                    <button class="btn btn-outline-primary rounded-pill add-to-cart-btn"
-                        data-product='@json($productData)'>Add to Cart</button>
-                    <div class="d-none quantity-wrapper d-flex align-items-center gap-2">
-                        <button class="btn btn-outline-secondary rounded-circle decrement-btn">−</button>
-                        <input type="text" class="form-control text-center quantity-input p-1" value="1" style="width:50px" readonly>
-                        <button class="btn btn-outline-secondary rounded-circle increment-btn">+</button>
+                            <div class="mt-auto d-flex justify-content-center align-items-center gap-2">
+                                @if($product->status !== 'disable')
+                                    <button class="btn btn-outline-primary rounded-pill add-to-cart-btn px-3 py-1"
+                                            data-product='@json($productData)'>
+                                        Add to Cart
+                                    </button>
+                                    <div class="d-none quantity-wrapper d-flex align-items-center gap-1">
+                                        <button class="btn btn-outline-secondary btn-sm rounded-circle decrement-btn">−</button>
+                                        <input type="text"
+                                               class="form-control text-center quantity-input p-1"
+                                               value="1"
+                                               style="width:50px"
+                                               readonly>
+                                        <button class="btn btn-outline-secondary btn-sm rounded-circle increment-btn">+</button>
+                                    </div>
+                                @else
+                                    <span class="badge bg-warning text-dark">Out of Stock</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
-                @else
-                    <span class="badge bg-warning text-dark">Out of Stock</span>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
+                </div>
 
                 <!-- Product Detail Modal -->
                 <div class="modal fade" id="productModal{{ $product->id }}" tabindex="-1" aria-labelledby="productModalLabel{{ $product->id }}" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content rounded-4">
-                            <div class="modal-header bg-dark text-white rounded-top-4">
+                            <div class="modal-header modal-header-gradient rounded-top-4">
                                 <h5 class="modal-title" id="productModalLabel{{ $product->id }}">{{ $product->name }}</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body row">
-                                <div class="col-md-5">
+                                <div class="col-md-5 mb-3 mb-md-0">
                                     <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://via.placeholder.com/400x300?text=No+Image' }}"
-                                         class="img-fluid rounded" alt="{{ $product->name }}">
+                                         class="img-fluid rounded"
+                                         alt="{{ $product->name }}">
                                 </div>
                                 <div class="col-md-7">
                                     <h5 class="fw-bold">{{ $product->name }}</h5>
-                                    <p class="text-muted">{{ $product->model_number ?? '' }}</p>
-                                    <p>{{ $product->description ?? 'No description available.' }}</p>
-                                    <p>
+                                    @if(!empty($product->model_number))
+                                        <p class="text-muted mb-1">Code: {{ $product->model_number }}</p>
+                                    @endif
+                                    <p class="mb-2">{{ $product->description ?? 'No description available.' }}</p>
+                                    <p class="mb-1">
                                         <strong>Price:</strong>
+                                        £{{ number_format($product->price, 2) }}
                                         @if($includeVat)
-                                            £{{ number_format($priceWithVat, 2) }} (VAT Included)
-                                        @else
-                                            £{{ number_format($product->price, 2) }} (No VAT)
+                                            <small class="text-muted">(VAT to be added)</small>
                                         @endif
                                     </p>
                                     @if($includeVat)
-                                        <p><strong>VAT:</strong> {{ $vatRate }}% (Included)</p>
+                                        <p class="mb-1"><strong>VAT Rate:</strong> {{ $vatRate }}%</p>
                                     @endif
-                                    <p><strong>Status:</strong> {{ ucfirst($product->status ?? 'Available') }}</p>
+                                    <p class="mb-3"><strong>Status:</strong> {{ ucfirst($product->status ?? 'Available') }}</p>
 
-                                    <button class="btn btn-outline-primary w-100 mt-2 add-to-cart-btn"
-                                        data-product='@json($productData)'>
+                                    <button class="btn btn-outline-primary w-100 mt-1 add-to-cart-btn"
+                                            data-product='@json($productData)'>
                                         Add to Cart
                                     </button>
                                 </div>
@@ -167,7 +319,7 @@
     <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content rounded-4">
-                <div class="modal-header bg-dark text-white rounded-top-4">
+                <div class="modal-header modal-header-gradient rounded-top-4">
                     <h5 class="modal-title" id="cartModalLabel">🛍️ Your Cart</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -183,7 +335,8 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Close</button>
                     <a href="{{ route('checkout', ['shopid' => $shopid ?? 1]) }}" class="btn btn-primary rounded-pill">
-                        Proceed to Checkout</a>
+                        Proceed to Checkout
+                    </a>
                 </div>
             </div>
         </div>
@@ -298,15 +451,15 @@
 
                 const ids = Object.keys(cart);
                 if (ids.length === 0) {
-                    html = '<p class="text-center text-muted">Your cart is empty.</p>';
+                    html = '<p class="text-center text-muted mb-0">Your cart is empty.</p>';
                 } else {
-                    html = `<table class="table align-middle mb-3">
-                        <thead>
+                    html = `<table class="table table-sm align-middle mb-3">
+                        <thead class="table-light">
                             <tr>
                                 <th>Product</th>
-                                <th>Price</th>
-                                <th>Qty</th>
-                                <th>Subtotal</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Subtotal</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -323,10 +476,14 @@
 
                         html += `<tr>
                             <td>${item.name}</td>
-                            <td>£${price.toFixed(2)}</td>
-                            <td>${quantity}</td>
-                            <td>£${subtotal.toFixed(2)}</td>
-                            <td><button class="btn btn-sm btn-danger remove-item" data-id="${id}">✕</button></td>
+                            <td class="text-end">£${price.toFixed(2)}</td>
+                            <td class="text-center">${quantity}</td>
+                            <td class="text-end">£${subtotal.toFixed(2)}</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-danger remove-item" data-id="${id}">
+                                    ✕
+                                </button>
+                            </td>
                         </tr>`;
                     });
 

@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
     <div class="container">
         <!-- Logo -->
-        <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
+        <a class="navbar-brand fw-bold" href="{{ route('seller.dashboard') }}">
             {{ sys_config('site_name') }}
         </a>
 
@@ -14,7 +14,7 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link @if(request()->routeIs('dashboard')) active @endif" href="{{ route('dashboard') }}">
+                    <a class="nav-link @if(request()->routeIs('seller.dashboard')) active @endif" href="{{ route('seller.dashboard') }}">
                         Dashboard
                     </a>
                 </li>
