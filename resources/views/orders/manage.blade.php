@@ -103,7 +103,7 @@
                         Payment: {{ ucfirst($order->payment_status) }}
                     </span>
 
-                    <a href="{{ url()->previous() }}"
+                    <a href="{{ route('shop.show', $order->shop_id)  }}"
                        class="btn btn-outline-light btn-sm back-btn">
                         ← Back
                     </a>

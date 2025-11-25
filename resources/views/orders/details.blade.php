@@ -5,7 +5,6 @@
         }
 
         .order-page {
-            /* background: radial-gradient(circle at top left, #e0ecff 0, #f9fafb 40%, #f3f4f6 100%); */
             min-height: 100vh;
         }
 
@@ -203,7 +202,7 @@
             <div class="order-card-header usa-flag-header d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <div class="order-section-title mb-1 text-white-50">Order Summary</div>
-                    <h4>#{{ $order->id }} — Invoice {{ $order->invoice_number }}</h4>
+                    <h4>#{{ $order->id }} — Order {{ $order->invoice_number }}</h4>
                     <div class="order-meta mt-1">
                         Created: {{ $order->created_at->format('d M Y, H:i') }}
                     </div>
@@ -232,7 +231,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <div class="order-section-title mb-1">Invoice Number</div>
+                        <div class="order-section-title mb-1">Order Number</div>
                         <div class="order-value">{{ $order->invoice_number }}</div>
                     </div>
 
@@ -306,26 +305,37 @@
             </div>
         </div>
 
-        {{-- Actions --}}
-        <div class="mt-4 row g-3 actions-row">
-            <div class="col-md-4 d-grid">
-                <a href="{{ route('orders.invoice', $order->id) }}" class="btn btn-success">
-                    Download Invoice PDF
-                </a>
-            </div>
+        {{-- 🔹 WhatsApp Share Card --}}
+        <div class="card order-card mb-4">
 
-            <div class="col-md-4 d-grid">
-                <a href="{{ route('orders.export', $order->id) }}" class="btn btn-success">
-                    Download Excel
-                </a>
-            </div>
+            <div class="card-body">
 
-            <div class="col-md-4 d-grid">
-                <a href="{{ route('orders.sendEmail', $order->id) }}" class="btn btn-primary">
-                    📧 Send to Email
-                </a>
+                <div class="mt-4 row g-3 actions-row">
+                    <div class="col-md-4 d-grid">
+                        <a href="{{ route('orders.invoice', $order->id) }}" class="btn btn-success">
+                            Download Sales Order PDF
+                        </a>
+                    </div>
+
+                    <div class="col-md-4 d-grid">
+                        <a href="{{ route('orders.export', $order->id) }}" class="btn btn-success">
+                            Download Excel
+                        </a>
+                    </div>
+
+                    <div class="col-md-4 d-grid">
+                        <a href="{{ route('orders.sendEmail', $order->id) }}" class="btn btn-primary">
+                            📧 Send to Email
+                        </a>
+                    </div>
+                </div>
+
+
             </div>
         </div>
+
+        {{-- Actions --}}
+
 
         <div class="mt-4 d-flex justify-content-start">
             <a href="{{ url('/') }}" class="btn btn-secondary">
@@ -334,4 +344,44 @@
         </div>
 
     </main>
+
+    {{-- WhatsApp JS --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const btnSummary   = document.getElementById('btnWhatsappSummary');
+            const btnPdfLink   = document.getElementById('btnWhatsappPdfLink');
+
+            const orderNumber  = @json($order->invoice_number);
+            const orderTotal   = @json(number_format($order->total, 2));
+            const orderDate    = @json($order->created_at->format('d M Y, H:i'));
+            const pdfUrl       = @json(route('orders.invoice', $order->id));
+
+            function openWhatsAppShare(message) {
+                const encodedMsg = encodeURIComponent(message);
+                const url = `https://wa.me/?text=${encodedMsg}`;
+                window.open(url, '_blank');
+            }
+
+            btnSummary.addEventListener('click', function () {
+                let msg = `Order Details\n`;
+                msg += `--------------------\n`;
+                msg += `Order No: ${orderNumber}\n`;
+                msg += `Date: ${orderDate}\n`;
+                msg += `Total: £${orderTotal}\n\n`;
+                msg += `Thank you for your order with JDM Distributors.`;
+
+                openWhatsAppShare(msg);
+            });
+
+            btnPdfLink.addEventListener('click', function () {
+                const msg =
+                    `Hello,\n\n` +
+                    `Here is the Sales Order PDF for order ${orderNumber}.\n` +
+                    `Download it from this link:\n${pdfUrl}\n\n` +
+                    `Thank you.`;
+
+                openWhatsAppShare(msg);
+            });
+        });
+    </script>
 </x-app-layout>

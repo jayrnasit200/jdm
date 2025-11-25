@@ -12,6 +12,8 @@ use App\Exports\OrderExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use App\Models\ShopProductPrice;
 
 class OrderController extends Controller
 {
@@ -38,12 +40,26 @@ class OrderController extends Controller
         }
 
 
+    // public function productorder($shopid)
+    // {
+    //     $products = Product::with('category')->get();
+    //     return view('shops.order', compact('shopid','products'));
+    // }
     public function productorder($shopid)
     {
-        $products = Product::with('category')->get();
+        $products = Product::with('category')
+            ->leftJoin('shop_product_prices', function ($join) use ($shopid) {
+                $join->on('shop_product_prices.product_id', '=', 'products.id')
+                     ->where('shop_product_prices.shop_id', '=', $shopid);
+            })
+            ->select(
+                'products.*',
+                DB::raw('COALESCE(shop_product_prices.price, products.price) as effective_price')
+            )
+            ->get();
+
         return view('shops.order', compact('shopid','products'));
     }
-
     public function placeOrder(Request $request, $shopid)
     {
         try {
@@ -188,7 +204,7 @@ class OrderController extends Controller
 
         $shopRef = $order->shop->ref ?? 'shop';
         $dateTime = now()->format('Ymd_His');
-        $fileName = "Invoice_{$shopRef}_{$dateTime}.pdf";
+        $fileName = "order_{$shopRef}_{$dateTime}.pdf";
 
         return $pdf->download($fileName);
     }
@@ -200,7 +216,7 @@ class OrderController extends Controller
         $shopRef = $order->shop->ref ?? 'shop';
         $dateTime = now()->format('Ymd_His');
 
-        $pdfFileName = "Invoice_{$shopRef}_{$dateTime}.pdf";
+        $pdfFileName = "order_{$shopRef}_{$dateTime}.pdf";
         $excelFileName = "{$shopRef}_{$dateTime}.xlsx";
 
         // ---------------- PDF ----------------
@@ -231,9 +247,9 @@ class OrderController extends Controller
         // $email = 'r9638527415@gmail.com';
         $emails = sys_config('email');
 
-        Mail::raw('Please find your Invoice (PDF) and Excel attached.', function ($message) use ($emails, $pdfPath, $pdfFileName, $excelPath, $excelFileName) {
+        Mail::raw('Please find your Order (PDF) and Excel attached.', function ($message) use ($emails, $pdfPath, $pdfFileName, $excelPath, $excelFileName) {
             $message->to($emails) // <- use the correct variable here
-                ->subject('Your Invoice from JDM Distributors')
+                ->subject('Your Order from JDM Distributors')
                 ->attach($pdfPath, [
                     'as' => $pdfFileName,
                     'mime' => 'application/pdf'
@@ -245,7 +261,7 @@ class OrderController extends Controller
         });
 
 
-        return back()->with('success', "Invoice and Excel sent successfully !");
+        return back()->with('success', "Order and Excel sent successfully !");
     }
 
 // Show manage order page
@@ -300,34 +316,36 @@ public function uploadInvoice(Request $request, $id)
             'success'      => true,
             'invoice_path' => $order->invoice,                        // e.g. invoices/INV_123.pdf
             'invoice_url'  => asset('storage/' . $order->invoice),    // full URL for frontend
-            'message'      => 'Invoice uploaded successfully!',
+            'message'      => 'Order uploaded successfully!',
         ]);
     }
 
     // Normal redirect
-    return back()->with('success', 'Invoice uploaded successfully!');
+    return back()->with('success', 'Order uploaded successfully!');
 }
-public function addProduct(Request $request, Order $order)
+public function addProduct(Request $request, $id)
 {
     $data = $request->validate([
         'product_id' => 'required|integer|exists:products,id',
         'quantity'   => 'required|integer|min:1',
     ]);
 
+    $order   = Order::findOrFail($id);
     $product = Product::findOrFail($data['product_id']);
 
     OrderProduct::create([
-        'orders_id'   => $order->id,
-        'products_id' => $product->id,
-        'selling_price' => $product->price, // or whatever logic you use
-        'discount'    => 0,
-        'quantity'    => $data['quantity'],
+        'orders_id'     => $order->id,
+        'products_id'   => $product->id,
+        'selling_price' => $product->price,
+        'discount'      => 0,
+        'quantity'      => $data['quantity'],
     ]);
 
     $this->refreshOrderTotals($order);
 
     return back()->with('success', 'Product added to order.');
 }
+
 
 public function removeProductFromOrder(Request $request, Order $order, $productId)
 {
@@ -387,9 +405,9 @@ private function refreshOrderTotals(Order $order): void
     $totalDiscount = 0;
 
     foreach ($order->orderProducts as $line) {
-        $unitPrice   = (float) $line->selling_price;
+        $unitPrice    = (float) $line->selling_price;
         $unitDiscount = (float) ($line->discount ?? 0);
-        $qty         = (int) ($line->quantity ?? 0);
+        $qty          = (int) ($line->quantity ?? 0);
 
         $lineNet = max($unitPrice - $unitDiscount, 0) * $qty;
 
@@ -397,9 +415,10 @@ private function refreshOrderTotals(Order $order): void
         $total         += $lineNet;
     }
 
-    $order->discount   = $totalDiscount; // if you have this column
-    $order->total      = $total;         // main total saved in orders table
-    // if you store net_total / Vat etc, set them here as well
+    $order->discount = $totalDiscount;
+    $order->total    = $total;
+
     $order->save();
 }
+
 }

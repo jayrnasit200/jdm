@@ -141,7 +141,6 @@
             <div class="row align-items-center g-3">
                 <div class="col-auto">
                     <div class="checkout-logo">
-                        {{-- Change logo path if needed --}}
                         <img src="{{ asset('assets/jdm_distributors_logo.jpeg') }}"
                              alt="JDM Distributors">
                     </div>
@@ -189,6 +188,7 @@
                     Excluding VAT · Editable prices & quantities
                 </span>
             </div>
+
             <div class="card-body p-3 p-md-4">
                 <!-- Checkout Table -->
                 <div class="table-responsive">
@@ -206,6 +206,36 @@
                             <!-- Filled by JS -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            {{-- 🔻 Discount code row --}}
+            <div class="px-3 px-md-4 py-3 border-top d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                    <div class="input-group input-group-sm" style="max-width: 280px;">
+                        <span class="input-group-text">Discount code</span>
+                        <input type="text"
+                               id="discountCode"
+                               class="form-control"
+                               placeholder="e.g. JDM10, JDM25">
+                    </div>
+                    <button type="button"
+                            id="applyDiscountBtn"
+                            class="btn btn-sm btn-outline-primary btn-pill">
+                        Apply
+                    </button>
+                    <button type="button"
+                            id="removeDiscountBtn"
+                            class="btn btn-sm btn-outline-secondary btn-pill d-none">
+                        Remove
+                    </button>
+                </div>
+
+                <div class="text-end small">
+                    <div>
+                        Discount: £<span id="discountValue">0.00</span>
+                    </div>
+                    <div id="discountLabel" class="text-muted"></div>
                 </div>
             </div>
 
@@ -255,15 +285,27 @@
         </div>
     </main>
 
-    <!-- JS (logic unchanged, just formatted) -->
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+        // Map: { product_id: special_price } passed from controller
+        const shopSpecialPrices = @json($specialPrices ?? []);
+
+        document.addEventListener('DOMContentLoaded', () => {
 
         const shopId = "{{ $shopid ?? 1 }}";
         const cartKey = `cart_${shopId}`;
-        const checkoutBody = document.getElementById('checkoutBody');
-        const checkoutTotalEl = document.getElementById('checkoutTotal');
-        const checkoutForm = document.getElementById('checkoutForm');
+        const discountKey = `cart_discount_${shopId}`;
+
+        const checkoutBody      = document.getElementById('checkoutBody');
+        const checkoutTotalEl   = document.getElementById('checkoutTotal');
+        const checkoutForm      = document.getElementById('checkoutForm');
+
+        const discountCodeInput = document.getElementById('discountCode');
+        const applyDiscountBtn  = document.getElementById('applyDiscountBtn');
+        const removeDiscountBtn = document.getElementById('removeDiscountBtn');
+        const discountValueEl   = document.getElementById('discountValue');
+        const discountLabelEl   = document.getElementById('discountLabel');
+
+        let activeDiscount = null; // { code: 'JDM10', percent: 10 }
 
         const getCart = () => {
             const stored = localStorage.getItem(cartKey);
@@ -277,6 +319,90 @@
 
         const saveCart = (cart) => localStorage.setItem(cartKey, JSON.stringify(cart));
 
+        const getSavedDiscount = () => {
+            const stored = localStorage.getItem(discountKey);
+            try {
+                return stored ? JSON.parse(stored) : null;
+            } catch (e) {
+                return null;
+            }
+        };
+
+        const saveDiscount = (discountObj) => {
+            if (!discountObj) {
+                localStorage.removeItem(discountKey);
+            } else {
+                localStorage.setItem(discountKey, JSON.stringify(discountObj));
+            }
+        };
+
+        const parseDiscountCode = (code) => {
+            if (!code) return null;
+            const upper = code.trim().toUpperCase();
+            const match = upper.match(/^JDM(\d{1,2})$/);
+            if (!match) return null;
+            const percent = parseInt(match[1], 10);
+            if (percent < 1 || percent > 100) return null;
+            return { code: upper, percent };
+        };
+
+        /* Apply percentage discount to every item (based on original_price) */
+        const applyDiscountToCart = (cart, percent) => {
+            for (let id in cart) {
+                const item = cart[id];
+
+                // Ensure original_price is set
+                if (typeof item.original_price === 'undefined' || item.original_price === null) {
+                    item.original_price = parseFloat(item.price) || 0;
+                }
+
+                const base = parseFloat(item.original_price) || 0;
+                const discounted = base * (1 - percent / 100);
+                item.price = parseFloat(discounted.toFixed(2));
+            }
+            saveCart(cart);
+        };
+
+        /* Remove discount: restore item.price from original_price */
+        const removeDiscountFromCart = (cart) => {
+            for (let id in cart) {
+                const item = cart[id];
+                if (typeof item.original_price !== 'undefined' && item.original_price !== null) {
+                    item.price = parseFloat(item.original_price) || 0;
+                }
+            }
+            saveCart(cart);
+        };
+
+        const updateDiscountSummary = () => {
+            const cart = getCart();
+            let totalOriginal = 0;
+            let totalCurrent  = 0;
+
+            for (let id in cart) {
+                const item = cart[id];
+                const price   = parseFloat(item.price) || 0;
+                const qty     = parseInt(item.quantity) || 0;
+                const orig    = (typeof item.original_price !== 'undefined' && item.original_price !== null)
+                                ? parseFloat(item.original_price) || price
+                                : price;
+
+                totalCurrent  += price * qty;
+                totalOriginal += orig * qty;
+            }
+
+            const diff = Math.max(totalOriginal - totalCurrent, 0);
+            discountValueEl.textContent = diff.toFixed(2);
+
+            if (activeDiscount && diff > 0) {
+                discountLabelEl.textContent = `${activeDiscount.percent}% off applied with code ${activeDiscount.code}`;
+                removeDiscountBtn.classList.remove('d-none');
+            } else {
+                discountLabelEl.textContent = '';
+                removeDiscountBtn.classList.add('d-none');
+            }
+        };
+
         /* RENDER CHECKOUT TABLE (price = ex-VAT) */
         const renderCheckout = () => {
             const cart = getCart();
@@ -287,13 +413,13 @@
             for (let id in cart) {
                 const item = cart[id];
 
-                // Store original ex-VAT price the first time
-                if (typeof item.original_price === 'undefined') {
+                // Store original ex-VAT price the first time we ever see this item
+                if (typeof item.original_price === 'undefined' || item.original_price === null) {
                     item.original_price = item.price;
                     updatedOriginals = true;
                 }
 
-                const price = parseFloat(item.price) || 0;  // ex-VAT
+                const price = parseFloat(item.price) || 0;  // ex-VAT (possibly discounted)
                 const qty   = parseInt(item.quantity) || 1;
                 const subtotal = (price * qty).toFixed(2);
                 total += parseFloat(subtotal);
@@ -329,33 +455,35 @@
 
             checkoutTotalEl.textContent = total.toFixed(2);
             attachInputListeners();
+            updateDiscountSummary();
         };
 
         /* Update Subtotal + Total on Change */
         const attachInputListeners = () => {
             document.querySelectorAll('.price-input, .qty-input').forEach(input => {
                 input.addEventListener('input', () => {
-                    const row = input.closest('tr');
-                    const id = row.dataset.id;
+                    const row  = input.closest('tr');
+                    const id   = row.dataset.id;
                     const cart = getCart();
 
                     const price = parseFloat(row.querySelector('.price-input').value) || 0;
                     const qty   = parseInt(row.querySelector('.qty-input').value) || 1;
 
-                    cart[id].price = price;   // still ex-VAT
+                    // Update the *current* price and quantity
+                    cart[id].price    = price;   // still ex-VAT (possibly discounted)
                     cart[id].quantity = qty;
 
                     const subtotal = (price * qty).toFixed(2);
                     row.querySelector('.subtotal').textContent = subtotal;
 
                     saveCart(cart);
-                    updateTotal();
+                    updateTotalAndDiscount();
                 });
             });
 
             document.querySelectorAll('.remove-item').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const id = btn.closest('tr').dataset.id;
+                    const id   = btn.closest('tr').dataset.id;
                     const cart = getCart();
                     delete cart[id];
                     saveCart(cart);
@@ -364,20 +492,81 @@
             });
         };
 
-        /* Update Total (ex-VAT) */
-        const updateTotal = () => {
+        const updateTotalAndDiscount = () => {
             const cart = getCart();
             let total = 0;
             for (let id in cart) {
-                const item = cart[id];
+                const item  = cart[id];
                 const price = parseFloat(item.price) || 0;
                 const qty   = parseInt(item.quantity) || 0;
                 total += price * qty;
             }
             checkoutTotalEl.textContent = total.toFixed(2);
+            updateDiscountSummary();
         };
 
-        renderCheckout();
+        /* Discount code: Apply & Remove */
+        applyDiscountBtn.addEventListener('click', () => {
+            const parsed = parseDiscountCode(discountCodeInput.value);
+            if (!parsed) {
+                alert('Invalid code. Use format like JDM10, JDM20, JDM50.');
+                return;
+            }
+
+            const cart = getCart();
+            if (Object.keys(cart).length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+
+            activeDiscount = parsed;
+            applyDiscountToCart(cart, activeDiscount.percent);
+            saveDiscount(activeDiscount);
+            renderCheckout();
+        });
+
+        removeDiscountBtn.addEventListener('click', () => {
+            const cart = getCart();
+            removeDiscountFromCart(cart);
+            activeDiscount = null;
+            saveDiscount(null);
+            discountCodeInput.value = '';
+            renderCheckout();
+        });
+
+        // 🔹 Initialise cart + special shop prices + discount from localStorage
+        (function init() {
+            let cart = getCart();
+
+            // 1️⃣ Apply shop-specific prices as base
+            for (let id in cart) {
+                const item      = cart[id];
+                const productId = parseInt(id, 10);
+
+                if (shopSpecialPrices[productId] !== undefined) {
+                    const special = parseFloat(shopSpecialPrices[productId]) || 0;
+                    item.original_price = special;
+                    item.price          = special;
+                } else {
+                    if (typeof item.original_price === 'undefined' || item.original_price === null) {
+                        item.original_price = parseFloat(item.price) || 0;
+                    }
+                }
+            }
+            saveCart(cart);
+
+            // 2️⃣ Apply saved discount (if any)
+            const saved = getSavedDiscount();
+            if (saved && saved.percent) {
+                activeDiscount = saved;
+                cart = getCart();
+                applyDiscountToCart(cart, activeDiscount.percent);
+                discountCodeInput.value = activeDiscount.code;
+            }
+
+            // 3️⃣ Render table
+            renderCheckout();
+        })();
 
         /* SUBMIT ORDER – send ex-VAT, plus vat=yes/no to backend */
         checkoutForm.addEventListener('submit', async (e) => {
@@ -395,18 +584,16 @@
                 const item = cart[id];
 
                 const qty    = parseInt(item.quantity) || 0;
-                const price  = parseFloat(item.price) || 0; // ex-VAT
+                const price  = parseFloat(item.price) || 0; // ex-VAT (possibly discounted)
                 const original = item.original_price !== undefined
                     ? parseFloat(item.original_price) || price
                     : price;
 
-                // Discount per unit: only if current < original
                 const discountPerUnit = original > price ? (original - price) : 0;
                 const discountTotal   = discountPerUnit * qty;
 
-                // vat + vat_rate came from product page
-                const vatFlag  = item.vat ?? 'no';
-                const vatRate  = item.vat_rate ?? null;
+                const vatFlag = item.vat ?? 'no';
+                const vatRate = item.vat_rate ?? null;
 
                 return {
                     ...item,
@@ -439,6 +626,7 @@
 
                 if (data.success) {
                     localStorage.removeItem(cartKey);
+                    localStorage.removeItem(discountKey);
                     alert('✅ Order placed successfully!');
                     window.location.href = `/orders/${data.order_id}`;
                 } else {

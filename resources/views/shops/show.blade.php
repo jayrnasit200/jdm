@@ -304,7 +304,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Date</th>
-                                    <th>Invoice</th>
+                                    <th>Order NO</th>
                                     {{-- <th>Comments</th> --}}
                                     <th>Status</th>
                                     <th>Total</th>

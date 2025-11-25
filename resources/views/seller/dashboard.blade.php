@@ -16,7 +16,7 @@
                     <i class="fa fa-user-circle me-1"></i>
                     {{ auth()->user()->email ?? 'Seller Account' }}
                 </span>
-                     </div>
+            </div>
         </div>
     </x-slot>
 
@@ -131,10 +131,13 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('seller.products.report.pdf', ['range' => 'year']) }}"
-                   class="btn btn-outline-secondary btn-sm">
-                    <i class="fa fa-file-pdf-o me-1"></i> Products PDF (Year)
-                </a>
+                {{-- 🔁 NOW this opens the modal instead of direct download --}}
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#productReportPdfModal">
+                    <i class="fa fa-file-pdf-o me-1"></i> Products PDF
+                </button>
 
                 <div class="btn-group filter-toggle-group" role="group" aria-label="Period filter">
                     <button type="button" class="btn btn-outline-primary active" data-range="week">
@@ -149,7 +152,6 @@
                 </div>
             </div>
         </div>
-
 
         @php
             $weekStats  = $weekStats  ?? ['orders' => 0, 'sales' => 0, 'avg' => 0];
@@ -224,6 +226,7 @@
 
         {{-- Charts row: Sales trend + Product report --}}
         <div class="row g-3 mb-4">
+            {{-- Sales Chart --}}
             <div class="col-12 col-lg-8">
                 <div class="dash-metric-card p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -252,6 +255,7 @@
                         <i class="fa fa-bar-chart text-muted"></i>
                     </div>
 
+                    {{-- Range + custom date (for table via AJAX) --}}
                     <div class="mb-2">
                         <label class="form-label mb-1" style="font-size:0.75rem;">Report Range</label>
                         <select id="productReportRange" class="form-select form-select-sm">
@@ -331,7 +335,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Invoice</th>
+                                <th>Order</th>
                                 <th>Shop</th>
                                 <th>Date</th>
                                 <th>Total (£)</th>
@@ -429,6 +433,77 @@
 
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 🆕 Product Selling Report – PDF Modal --}}
+    <div class="modal fade" id="productReportPdfModal" tabindex="-1"
+         aria-labelledby="productReportPdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-3">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productReportPdfModalLabel">
+                        Export Product Selling Report (PDF)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+
+                <form id="productReportPdfForm"
+                      method="GET"
+                      action="{{ route('seller.products.report.pdf') }}"
+                      target="_blank">
+                    <div class="modal-body">
+                        <p class="small text-muted mb-3">
+                            Choose the time period for the PDF.
+                            The report will show each product and how many units were sold.
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label mb-1" style="font-size:0.8rem;">Report Range</label>
+                            <select id="productPdfRange"
+                                    name="range"
+                                    class="form-select">
+                                <option value="week" selected>This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                                <option value="custom">Custom Date Range</option>
+                            </select>
+                        </div>
+
+                        <div id="productPdfCustomDates" class="row g-2" style="display:none;">
+                            <div class="col-6">
+                                <label class="form-label mb-1" style="font-size:0.8rem;">Start Date</label>
+                                <input type="date"
+                                       id="productPdfStart"
+                                       name="start_date"
+                                       class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label mb-1" style="font-size:0.8rem;">End Date</label>
+                                <input type="date"
+                                       id="productPdfEnd"
+                                       name="end_date"
+                                       class="form-control">
+                            </div>
+                        </div>
+
+                        <small class="text-muted d-block mt-3">
+                            For custom range, both start and end dates are required.
+                        </small>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light"
+                                data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Download PDF
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -570,7 +645,7 @@
                 // Default range on load
                 switchRange('week');
 
-                // 🔹 Product report logic
+                // 🔹 Product report logic (table via AJAX)
                 const rangeSelect = document.getElementById('productReportRange');
                 const customDatesBox = document.getElementById('productReportCustomDates');
                 const startInput = document.getElementById('productReportStart');
@@ -583,6 +658,8 @@
                         customDatesBox.style.display = 'flex';
                     } else {
                         customDatesBox.style.display = 'none';
+                        startInput.value = '';
+                        endInput.value   = '';
                     }
                 });
 
@@ -639,6 +716,37 @@
                             alert('Error loading product report.');
                         });
                 });
+
+                // 🔹 Product Selling Report PDF modal logic
+                const productPdfRange   = document.getElementById('productPdfRange');
+                const productPdfCustom  = document.getElementById('productPdfCustomDates');
+                const productPdfStart   = document.getElementById('productPdfStart');
+                const productPdfEnd     = document.getElementById('productPdfEnd');
+                const productPdfForm    = document.getElementById('productReportPdfForm');
+
+                if (productPdfRange) {
+                    productPdfRange.addEventListener('change', () => {
+                        if (productPdfRange.value === 'custom') {
+                            productPdfCustom.style.display = 'flex';
+                        } else {
+                            productPdfCustom.style.display = 'none';
+                            if (productPdfStart) productPdfStart.value = '';
+                            if (productPdfEnd)   productPdfEnd.value   = '';
+                        }
+                    });
+                }
+
+                if (productPdfForm) {
+                    productPdfForm.addEventListener('submit', (e) => {
+                        if (productPdfRange && productPdfRange.value === 'custom') {
+                            if (!productPdfStart.value || !productPdfEnd.value) {
+                                e.preventDefault();
+                                alert('Please select both start and end dates for custom range.');
+                            }
+                        }
+                        // target="_blank" will open the PDF in a new tab
+                    });
+                }
             });
         </script>
     @endpush

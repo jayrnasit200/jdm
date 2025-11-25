@@ -7,6 +7,9 @@ use App\Models\Product;
 use App\Models\Shop;
 use App\Models\Order;
 use App\Models\OrderProduct;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class SellerController extends Controller
 {
@@ -175,7 +178,7 @@ class SellerController extends Controller
             'data'    => $data,
         ]);
     }
-    public function productsReportPdf(Request $request)
+function productsReportPdf(Request $request)
     {
         $range = $request->get('range', 'year');
         $now   = now();
@@ -190,54 +193,75 @@ class SellerController extends Controller
                 $end   = $now->copy()->endOfWeek();
                 $titleSuffix = ' - This Week';
                 break;
+
             case 'month':
                 $start = $now->copy()->startOfMonth();
                 $end   = $now->copy()->endOfMonth();
                 $titleSuffix = ' - This Month';
                 break;
+
             case 'year':
                 $start = $now->copy()->startOfYear();
                 $end   = $now->copy()->endOfYear();
                 $titleSuffix = ' - This Year';
                 break;
+
+            case 'custom':
+                $startInput = $request->input('start_date');
+                $endInput   = $request->input('end_date');
+
+                if ($startInput && $endInput) {
+                    $start = Carbon::parse($startInput)->startOfDay();
+                    $end   = Carbon::parse($endInput)->endOfDay();
+                    $titleSuffix = ' - ' . $start->format('d M Y') . ' to ' . $end->format('d M Y');
+                } else {
+                    $range = 'all';
+                    $titleSuffix = ' - All Time';
+                }
+                break;
+
             default:
                 $range = 'all';
                 $titleSuffix = ' - All Time';
                 break;
         }
 
+        // ✅ Get the real order products table name from the model
+        $orderProductTable = (new OrderProduct)->getTable();   // e.g. "order_products"
+
         $productsQuery = Product::query()
-    ->leftJoin('order_product', 'order_product.products_id', '=', 'products.id')
-    ->leftJoin('orders', 'orders.id', '=', 'order_product.orders_id')
-    ->select(
-        'products.id',
-        'products.model_number',
-        'products.name',
-        'products.price',
-        'products.vat',
-        'products.categories_id',
-        // 'products.barcode'
-    )
-    ->selectRaw('COALESCE(SUM(order_product.quantity), 0) as total_sold')
-    ->groupBy(
-        'products.id',
-        'products.model_number',
-        'products.name',
-        'products.price',
-        'products.vat',
-        'products.categories_id',
-        // 'products.barcode'
-    );
+            // Join order_products via alias "op"
+            ->leftJoin($orderProductTable . ' as op', 'op.products_id', '=', 'products.id')
+            // Join orders, but apply date filter INSIDE the join so unsold products still appear
+            ->leftJoin('orders', function ($join) use ($start, $end, $range) {
+                $join->on('orders.id', '=', 'op.orders_id');
 
-
-        if ($range !== 'all' && isset($start, $end)) {
-            $productsQuery->whereBetween('orders.created_at', [$start, $end]);
-        }
-
-        $products = $productsQuery
+                if ($range !== 'all' && $start && $end) {
+                    $join->whereBetween('orders.created_at', [$start, $end]);
+                }
+            })
+            ->select(
+                'products.id',
+                'products.model_number',
+                'products.name',
+                'products.price',
+                'products.vat',
+                'products.categories_id'
+            )
+            // If there are no matching orders in that period => SUM(NULL) => 0 via COALESCE
+            ->selectRaw('COALESCE(SUM(op.quantity), 0) as total_sold')
+            ->groupBy(
+                'products.id',
+                'products.model_number',
+                'products.name',
+                'products.price',
+                'products.vat',
+                'products.categories_id'
+            )
             ->orderByDesc('total_sold')
-            ->orderBy('products.name')
-            ->get();
+            ->orderBy('products.name');
+
+        $products = $productsQuery->get();
 
         $title = 'Product Sales Report' . $titleSuffix;
 

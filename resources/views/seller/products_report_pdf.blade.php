@@ -129,10 +129,10 @@
             <th style="width:40px;">#</th>
             <th style="width:90px;">Product Code</th>
             <th>Product Name</th>
-            <th class="text-right" style="width:60px;">Price (£)</th>
-            <th style="width:50px;">VAT</th>
+            {{-- <th class="text-right" style="width:60px;">Price (£)</th>
+            <th style="width:50px;">VAT</th> --}}
             <th style="width:70px;" class="text-right">Qty Sold</th>
-            <th style="width:80px;" class="text-right">Sales (£)</th>
+            {{-- <th style="width:80px;" class="text-right">Sales (£)</th> --}}
         </tr>
         </thead>
         <tbody>
@@ -153,19 +153,19 @@
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $product->model_number }}</td>
                 <td>{{ $product->name }}</td>
-                <td class="text-right">{{ number_format($price, 2) }}</td>
-                <td>{{ $product->vat === 'yes' ? 'Yes' : 'No' }}</td>
+                {{-- <td class="text-right">{{ number_format($price, 2) }}</td> --}}
+                {{-- <td>{{ $product->vat === 'yes' ? 'Yes' : 'No' }}</td> --}}
                 <td class="text-right">{{ $qty }}</td>
-                <td class="text-right">{{ number_format($lineSales, 2) }}</td>
+                {{-- <td class="text-right">{{ number_format($lineSales, 2) }}</td> --}}
             </tr>
         @endforeach
 
         {{-- Totals row --}}
-        <tr>
+        {{-- <tr>
             <td colspan="5" class="text-right" style="font-weight:bold;">TOTAL</td>
             <td class="text-right" style="font-weight:bold;">{{ $grandQty }}</td>
             <td class="text-right" style="font-weight:bold;">£{{ number_format($grandSales, 2) }}</td>
-        </tr>
+        </tr> --}}
         </tbody>
     </table>
 

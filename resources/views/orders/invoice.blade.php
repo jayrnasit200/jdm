@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Invoice #{{ $order->invoice_number }}</title>
+    <title>Order #{{ $order->invoice_number }}</title>
 
     <style>
         /* ===== GLOBAL / PAGE ===== */
@@ -263,8 +263,8 @@
     <div class="header-bar">
         <div class="header-bar-left">
             <img class="logo" src="{{ public_path('assets/jdm_distributors_logo.jpeg') }}">
-            <div class="invoice-title">INVOICE</div>
-            <div class="invoice-subtitle">Invoice #{{ $order->invoice_number }} &nbsp;|&nbsp; Page 1 of 1</div>
+            <div class="invoice-title">Order</div>
+            <div class="invoice-subtitle">Order #{{ $order->invoice_number }} &nbsp;|&nbsp; Page 1 of 1</div>
         </div>
 
         <div class="header-bar-right">
@@ -300,14 +300,14 @@
 
         {{-- Invoice Details --}}
         <div class="details-box details-box-right">
-            <div class="details-title">Invoice Details</div>
+            <div class="details-title">Order Details</div>
             <table class="details-table">
                 <tr>
-                    <td class="details-label">Invoice No</td>
+                    <td class="details-label">Order No</td>
                     <td class="details-value">{{ $order->invoice_number }}</td>
                 </tr>
                 <tr>
-                    <td class="details-label">Invoice Date</td>
+                    <td class="details-label">Order Date</td>
                     <td class="details-value">{{ $order->created_at->format('d/m/Y') }}</td>
                 </tr>
                 <tr>
@@ -419,7 +419,7 @@
                     <td class="total-value">£ {{ number_format($totalVat, 2) }}</td>
                 </tr>
                 <tr class="grand-total-row">
-                    <td class="total-label">Invoice Total</td>
+                    <td class="total-label">Order Total</td>
                     <td class="total-value">£ {{ number_format($totalGross, 2) }}</td>
                 </tr>
             </table>

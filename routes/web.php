@@ -11,11 +11,17 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ShopProductPriceController;
+
+use App\Models\Product;
 
 Route::get('/', function () {
-    // return view('welcome');
-    return view('under-development');
-});
+    $products = Product::with('category')->orderBy('name')->get();
+    return view('welcome', compact('products'));
+}); view('under-development');
+Route::post('/trade-enquiry', [CustomerController::class, 'store'])
+    ->name('trade.enquiry.store');
+
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
@@ -86,19 +92,23 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::post('/orders/{id}/upload-invoice', [OrderController::class, 'uploadInvoice'])->name('order.uploadInvoice');
     Route::post('/orders/{id}/add-product', [OrderController::class, 'addProduct'])->name('order.addProduct');
     Route::post('/orders/{order}/update-item', [OrderController::class, 'updateItem'])->name('order.updateItem');
-
+    Route::get('/orders/{order}/send-whatsapp-group', [CartController::class, 'sendToWhatsappGroup'])
+    ->name('orders.sendWhatsappGroup');
 // Remove product
 // Route::delete('/orders/{id}/remove-product/{productId}', [OrderController::class, 'removeProductFromOrder'])->name('order.removeProduct');
 Route::delete('/orders/{order}/remove-product/{product}', [OrderController::class, 'removeProductFromOrder'])
-    ->name('order.removeProductFromOrder')
-    ->middleware(['auth', 'role:seller']); // optional
+    ->name('order.removeProductFromOrder'); // optional
     // cart
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::get('/checkout/{shopid}', [CartController::class, 'checkout'])->name('checkout');
 
+    Route::get('/seller/shop-prices/create', [ShopProductPriceController::class, 'create'])
+    ->name('seller.shop-prices.create');
 
+Route::post('/seller/shop-prices', [ShopProductPriceController::class, 'store'])
+    ->name('seller.shop-prices.store');
 
 
 });
