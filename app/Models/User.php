@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\UserPermission;
 
 class User extends Authenticatable
 {
@@ -51,4 +52,8 @@ class User extends Authenticatable
     public function isCustomer() { return $this->role === self::ROLE_CUSTOMER; }
     public function isSeller()   { return $this->role === self::ROLE_SELLER; }
     public function isOwner()    { return $this->role === self::ROLE_OWNER; }
+    public function permission()
+{
+    return $this->hasOne(UserPermission::class, 'user_id');
+}
 }

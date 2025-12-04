@@ -21,7 +21,7 @@ class RoleMiddleware
             // Optional redirect logic for mismatched roles
             switch (Auth::user()->role) {
                 case 'admin':
-                    return redirect()->route('admin.dashboard');
+                    return redirect()->route('owner.dashboard');
                 case 'seller':
                     return redirect()->route('seller.dashboard');
                 case 'customer':

@@ -12,13 +12,19 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ShopProductPriceController;
+use App\Http\Controllers\Admin\AdminSellerController;
+use App\Http\Controllers\Admin\AdminSalesReportController;
 
 use App\Models\Product;
 
+// Route::get('/', function () {
+//     $products = Product::with('category')->orderBy('name')->get();
+//     return view('welcome', compact('products'));
+// }); view('under-development');
 Route::get('/', function () {
-    $products = Product::with('category')->orderBy('name')->get();
-    return view('welcome', compact('products'));
-}); view('under-development');
+    return redirect()->away('https://jdmdistributors.co.uk/');
+});
+
 Route::post('/trade-enquiry', [CustomerController::class, 'store'])
     ->name('trade.enquiry.store');
 
@@ -26,6 +32,20 @@ Route::post('/trade-enquiry', [CustomerController::class, 'store'])
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', function () {
+    $user = Auth::user();
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    return match ($user->role) {
+        'owner'    => redirect()->route('owner.dashboard'),
+        'seller'   => redirect()->route('seller.dashboard'),
+        'customer' => redirect()->route('customer.dashboard'),
+        default    => redirect()->route('home'),
+    };
+})->middleware(['auth'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -109,13 +129,25 @@ Route::delete('/orders/{order}/remove-product/{product}', [OrderController::clas
 
 Route::post('/seller/shop-prices', [ShopProductPriceController::class, 'store'])
     ->name('seller.shop-prices.store');
-
-
 });
 Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::get('/owner', [OwnerController::class, 'index'])->name('owner.dashboard');
 
-    return 'owner Page';
+    // Seller management
+    Route::get('/owner/sellers', [OwnerController::class, 'sellersIndex'])->name('owner.sellers.index');
+    Route::get('/owner/sellers/create', [OwnerController::class, 'sellersCreate'])->name('owner.sellers.create');
+    Route::post('/owner/sellers', [OwnerController::class, 'sellersStore'])->name('owner.sellers.store');
+    Route::post('/owner/sellers/{seller}/permissions', [OwnerController::class, 'updatePermissions'])
+    ->name('owner.sellers.permissions.update');
+
+    // Sales report
+    // Route::get('/owner/reports/sales', [OwnerController::class, 'salesReport'])->name('owner.reports.sales');
+// ✅ Use productReport instead
+Route::get('/reports/products', [OwnerController::class, 'productReport'])
+    ->name('reports.products');
+Route::get('/reports/products', [OwnerController::class, 'productReport'])
+    ->middleware(['auth', 'role:owner'])
+    ->name('owner.reports.products');
 });
 
 require __DIR__.'/auth.php';
