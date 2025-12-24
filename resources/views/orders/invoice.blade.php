@@ -5,336 +5,276 @@
     <title>Order #{{ $order->invoice_number }}</title>
 
     <style>
-        /* ===== GLOBAL / PAGE ===== */
+        /* TOP MARGIN REMAINS MINIMAL (4px from the very top edge) */
+        @page { margin: 4px 18px 16px 18px; }
+
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 11px;
             margin: 0;
             padding: 0;
-            background: #f1f5f9; /* light grey-blue */
-        }
-
-        .invoice-wrapper {
-            width: 100%;
-        }
-
-        .invoice-container {
+            color: #1f2937;
             background: #ffffff;
-            padding: 24px 28px 32px 28px;
-            margin: 10px auto;
-            width: 100%;
-            box-sizing: border-box;
         }
 
-        .header-bar {
+        /* ===== HEADER (Margin Below Minimized to 1px) ===== */
+        .header {
             width: 100%;
-            padding: 10px 14px;
-            margin-bottom: 18px;
-            background: linear-gradient(90deg, #0b3c5d, #1d4ed8); /* deep blue -> royal blue */
+            border-radius: 8px;
+            padding: 12px 15px;
+            box-sizing: border-box;
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
             color: #ffffff;
-            box-sizing: border-box;
+            /* REDUCED MARGIN BELOW HEADER TO 1PX */
+            margin-bottom: 1px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .header-bar-left {
-            float: left;
-            width: 60%;
-        }
-
-        .header-bar-right {
-            float: right;
-            width: 40%;
-            text-align: right;
-            font-size: 10px;
-        }
-
-        .logo {
-            width: 130px;
-            margin-bottom: 4px;
-        }
+        .header-table { width: 100%; border-collapse: collapse; }
+        .h-title { width: 45%; vertical-align: middle; }
+        .h-info { width: 55%; vertical-align: middle; text-align: right; font-size: 10px; line-height: 1.3; }
 
         .invoice-title {
-            font-size: 22px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            font-size: 20px;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1;
+            letter-spacing: .5px;
         }
-
         .invoice-subtitle {
-            font-size: 10px;
-            opacity: 0.9;
+            margin-top: 5px;
+            font-size: 11px;
+            opacity: 0.95;
+            line-height: 1.2;
         }
 
-        .company-name {
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .company-info-line {
-            line-height: 1.4;
-        }
-
-        .clear {
-            clear: both;
-        }
-
-        /* ===== DETAILS SECTION ===== */
-        .details-row {
-            width: 100%;
-            margin-top: 10px;
-            margin-bottom: 18px;
-        }
-
-        .details-box {
-            width: 46%;
-            border: 1px solid #e5e7eb;
-            padding: 10px 12px;
+        .company-name { font-size: 12px; font-weight: 900; margin-bottom: 3px; }
+        .company-line { line-height: 1.35; opacity: 0.95; }
+        .vat-pill {
             display: inline-block;
-            vertical-align: top;
-            box-sizing: border-box;
-            border-radius: 4px;
-            background: #f9fafb;
+            margin-top: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.2);
+            font-weight: 800;
+            font-size: 9.5px;
         }
 
-        .details-box-right {
-            float: right;
-        }
-
-        .details-title {
-            font-weight: bold;
-            margin-bottom: 6px;
-            font-size: 11px;
-            color: #0f172a;
-            text-transform: uppercase;
-        }
-
-        .details-text {
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .details-table {
+        /* ===== INFO CARDS (Space Above Minimized to 0) ===== */
+        .row-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            /* REMOVED TOP MARGIN (only keeping 8px at the bottom) */
+            margin-top: 0;
+            margin-bottom: 8px;
         }
+        .col { width: 50%; vertical-align: top; }
+        .col-left { padding-right: 8px; }
+        .col-right { padding-left: 8px; }
 
-        .details-table td {
-            padding: 2px 0;
+        .card {
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            box-sizing: border-box;
+            min-height: 110px;
         }
-
-        .details-label {
-            color: #6b7280;
+        .card-title {
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            color: #4b5563;
         }
+        .billto strong { font-size: 13px; color: #1f2937; }
+        .billto div { font-size: 11px; }
 
-        .details-value {
-            text-align: right;
-            font-weight: 600;
-            color: #111827;
-        }
+        .meta-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .meta-table td { padding: 3px 0; }
+        .meta-label { color: #6b7280; }
+        .meta-value { text-align: right; font-weight: 700; color: #1f2937; }
 
-        /* ===== ITEMS TABLE ===== */
+        /* ===== ITEMS TABLE (Refined) ===== */
         table.items {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 11px;
+            font-size: 10.5px;
+            margin-bottom: 15px;
         }
-
         table.items thead th {
-            background: #e5e7eb;
-            font-weight: bold;
-            padding: 7px 6px;
-            border: 1px solid #d1d5db;
+            background: #1f2937;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 8px 7px;
+            border: none;
             text-align: left;
             white-space: nowrap;
         }
-
         table.items tbody td {
-            padding: 6px 6px;
-            border: 1px solid #e5e7eb;
+            padding: 7px 7px;
+            border-left: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
             vertical-align: top;
+            background: #ffffff;
         }
+        table.items tbody tr:first-child td { border-top: 1px solid #e5e7eb; }
+        table.items tbody tr:nth-child(even) td { background: #f8fafc; }
 
-        table.items tbody tr:nth-child(even) {
-            background: #f9fafb;
-        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
 
-        .text-right {
-            text-align: right;
-        }
+        .qty-col { width: 6%; text-align: center; }
+        .code-col { width: 12%; }
+        .desc-col { width: 44%; }
+        .money-col { width: 8%; text-align: right; }
 
-        .text-center {
-            text-align: center;
-        }
-
-        .code-col {
-            width: 12%;
-        }
-
-        .qty-col {
-            width: 8%;
-            text-align: center;
-        }
-
-        .desc-col {
-            width: 40%;
-        }
-
-        .money-col {
-            width: 12%;
-            text-align: right;
-        }
-
-        /* ===== TOTALS BOX ===== */
-        .totals-wrapper {
+        /* ===== TOTALS (Fixed and Styled - Logo and Name in Footer) ===== */
+        .totals-wrap {
             width: 100%;
-            margin-top: 16px;
+            margin-top: 15px;
+            display: block;
         }
 
-        .totals {
-            width: 260px;
-            float: right;
-            border-radius: 4px;
-            border: 1px solid #e5e7eb;
-            background: #f9fafb;
-            padding: 8px 10px;
+        .totals-logo-container {
+            float: left;
+            width: 280px;
+            text-align: left;
+            padding: 12px;
             box-sizing: border-box;
         }
-
-        .totals table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
+        .totals-logo {
+            width: 80px;
+            height: auto;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .totals-company-name {
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 900;
+            color: #1e3a8a;
+            vertical-align: middle;
+            line-height: 1.2;
         }
 
-        .totals td {
-            padding: 4px 0;
-        }
 
-        .totals .total-label {
-            text-align: left;
-            color: #4b5563;
+        .totals {
+            width: 300px;
+            float: right;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px 14px;
+            box-sizing: border-box;
+            clear: none;
         }
-
-        .totals .total-value {
-            text-align: right;
-            font-weight: 600;
-            color: #111827;
-        }
+        .totals table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .totals td { padding: 4px 0; }
+        .total-label { color: #4b5563; }
+        .total-value { text-align: right; font-weight: 800; }
 
         .grand-total-row td {
-            border-top: 1px solid #9ca3af;
-            padding-top: 6px;
-            font-size: 12px;
-            font-weight: bold;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 8px;
+            font-size: 13px;
+            font-weight: 900;
         }
 
-        /* ===== FOOTER NOTES ===== */
+        /* Footer/Notes */
         .notes {
-            margin-top: 30px;
-            font-size: 10px;
+            clear: both;
+            margin-top: 25px;
+            font-size: 9.5px;
             color: #6b7280;
             border-top: 1px solid #e5e7eb;
-            padding-top: 8px;
-            line-height: 1.4;
+            padding-top: 10px;
+            line-height: 1.5;
         }
 
         .comments-box {
-            margin-top: 12px;
+            margin-top: 10px;
             font-size: 10px;
-            padding: 8px 10px;
-            border-radius: 4px;
-            border: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
             background: #f9fafb;
         }
-
         .comments-title {
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #111827;
+            font-weight: 900;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 10px;
+            color: #4b5563;
         }
     </style>
 </head>
 
 <body>
-<div class="invoice-wrapper">
 <div class="invoice-container">
 
-    {{-- ===== HEADER BAR ===== --}}
-    <div class="header-bar">
-        <div class="header-bar-left">
-            <img class="logo" src="{{ public_path('assets/jdm_distributors_logo.jpeg') }}">
-            <div class="invoice-title">Order</div>
-            <div class="invoice-subtitle">Order #{{ $order->invoice_number }} &nbsp;|&nbsp; Page 1 of 1</div>
-        </div>
+    {{-- ===== HEADER (compact - Space below minimized to 1px) ===== --}}
+    <div class="header">
+        <table class="header-table">
 
-        <div class="header-bar-right">
-            <div class="company-name">{{ sys_config('company_name') }}</div>
-            <div class="company-info-line">{{ sys_config('address') }}</div>
-            <div class="company-info-line">
-                E: {{ sys_config('email') }} &nbsp;|&nbsp; T: {{ sys_config('phone') }}
-            </div>
-            <div class="company-info-line">www.jdmdistributors.co.uk</div>
-            <div class="company-info-line">
-                <strong>VAT Reg No: {{ sys_config('vatnum') }}</strong>
-            </div>
-        </div>
-
-        <div class="clear"></div>
+        </table>
     </div>
 
+    {{-- ===== BILL TO + META (Space above minimized to 0) ===== --}}
+    <table class="row-table">
+        <tr>
+            <td class="col col-left">
+                <div class="card billto">
+                    <div class="card-title">Bill To / Deliver To</div>
+                    <div style="line-height: 1.5;">
+                        <strong>{{ $order->shop->company_name ?? 'N/A' }}</strong><br>
+                        {{ $order->shop->shopname ?? '' }}<br>
+                        {{ $order->shop->address ?? '' }}<br>
+                        {{ $order->shop->city ?? '' }}<br>
+                        {{ $order->shop->postcode ?? '' }}
+                    </div>
+                </div>
+            </td>
 
-    {{-- ===== BILL TO & INVOICE META ===== --}}
-    <div class="details-row">
+            <td class="col col-right">
+                <div class="card">
+                    <div class="card-title">Order Information</div>
+                    <table class="meta-table">
+                        <tr>
+                            <td class="meta-label">Order No</td>
+                            <td class="meta-value">{{ $order->invoice_number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Order Date</td>
+                            <td class="meta-value">{{ $order->created_at->format('d/m/Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">PO No</td>
+                            <td class="meta-value">{{ $order->po_number ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Account Ref</td>
+                            <td class="meta-value">{{ $order->shop->ref ?? 'N/A' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
 
-        {{-- Bill To --}}
-        <div class="details-box">
-            <div class="details-title">Bill To</div>
-            <div class="details-text">
-                <strong>{{ $order->shop->company_name ?? 'N/A' }}</strong><br>
-                {{ $order->shop->shopname ?? '' }}<br>
-                {{ $order->shop->address ?? '' }}<br>
-                {{ $order->shop->city ?? '' }}<br>
-                {{ $order->shop->postcode ?? '' }}
-            </div>
-        </div>
-
-        {{-- Invoice Details --}}
-        <div class="details-box details-box-right">
-            <div class="details-title">Order Details</div>
-            <table class="details-table">
-                <tr>
-                    <td class="details-label">Order No</td>
-                    <td class="details-value">{{ $order->invoice_number }}</td>
-                </tr>
-                <tr>
-                    <td class="details-label">Order Date</td>
-                    <td class="details-value">{{ $order->created_at->format('d/m/Y') }}</td>
-                </tr>
-                <tr>
-                    <td class="details-label">PO No</td>
-                    <td class="details-value">{{ $order->po_number ?? 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <td class="details-label">Account Ref</td>
-                    <td class="details-value">{{ $order->shop->ref ?? 'N/A' }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="clear"></div>
-    </div>
-
+    {{-- PHP variables remain the same --}}
     @php
-        // Global VAT rate (for VATable products)
-        $globalVatRate = sys_config('vat') ?? 0;
-
-        $totalDiscount = 0;   // total discount (per-unit * qty)
-        $totalNet      = 0;   // total ex-VAT
-        $totalVat      = 0;   // total VAT
-        $totalGross    = 0;   // total inc VAT
+        $globalVatRate = (float) (sys_config('vat') ?? 0);
+        $totalNet = 0;
+        $totalVat = 0;
+        $totalGross = 0;
     @endphp
 
-    {{-- ===== ITEMS TABLE ===== --}}
+    {{-- ===== ITEMS TABLE (No Change) ===== --}}
     <table class="items">
         <thead>
         <tr>
@@ -347,44 +287,33 @@
             <th class="money-col">Total</th>
         </tr>
         </thead>
-
         <tbody>
         @foreach($order->orderProducts as $item)
             @php
-                // Per-unit selling price saved in DB (GROSS = inc VAT if applicable)
                 $unitGross = (float) $item->selling_price;
-
-                // Discount treated as per-unit (same basis as selling_price)
                 $unitDiscount = (float) ($item->discount ?? 0);
-
-                // Effective per-unit gross after discount
                 $unitGrossAfterDiscount = max($unitGross - $unitDiscount, 0);
-
                 $qty = (int) $item->quantity;
 
-                // Check if this product is VATable
                 $productVatFlag = optional($item->product)->vat === 'yes';
 
                 if ($productVatFlag) {
-                    // Extract net + VAT from gross
-                    $unitNetExVat = $unitGrossAfterDiscount / (1 + $globalVatRate / 100);
-                    $unitVat      = $unitGrossAfterDiscount - $unitNetExVat;
-                    $vatPercent   = $globalVatRate;
+                    $unitNet = $unitGrossAfterDiscount / (1 + $globalVatRate / 100);
+                    $unitVat = $unitGrossAfterDiscount - $unitNet;
+                    $vatPercent = $globalVatRate;
                 } else {
-                    $unitNetExVat = $unitGrossAfterDiscount;
-                    $unitVat      = 0;
-                    $vatPercent   = 0;
+                    $unitNet = $unitGrossAfterDiscount;
+                    $unitVat = 0;
+                    $vatPercent = 0;
                 }
 
-                $lineNet   = $unitNetExVat * $qty;
-                $lineVat   = $unitVat * $qty;
+                $lineNet = $unitNet * $qty;
+                $lineVat = $unitVat * $qty;
                 $lineGross = $unitGrossAfterDiscount * $qty;
 
-                // accumulate totals
-                $totalDiscount += $unitDiscount * $qty;
-                $totalNet      += $lineNet;
-                $totalVat      += $lineVat;
-                $totalGross    += $lineGross;
+                $totalNet += $lineNet;
+                $totalVat += $lineVat;
+                $totalGross += $lineGross;
             @endphp
 
             <tr>
@@ -400,34 +329,31 @@
         </tbody>
     </table>
 
-
-    {{-- ===== TOTALS SECTION ===== --}}
-    <div class="totals-wrapper">
+    {{-- ===== TOTALS (Fixed and Styled - Logo and Name in Footer) ===== --}}
+    <div class="totals-wrap">
+        <div class="totals-logo-container">
+            <img class="totals-logo" src="{{ public_path('assets/jdm_distributors_logo.jpeg') }}" alt="JDM Logo">
+            <div class="totals-company-name">{{ sys_config('company_name') }}</div>
+        </div>
         <div class="totals">
             <table>
-                {{-- Uncomment if you want to show total discount --}}
-                {{-- <tr>
-                    <td class="total-label">Total Discount</td>
-                    <td class="total-value">£ {{ number_format($totalDiscount, 2) }}</td>
-                </tr> --}}
                 <tr>
-                    <td class="total-label">Total Net Amount</td>
+                    <td class="total-label">Subtotal (Net)</td>
                     <td class="total-value">£ {{ number_format($totalNet, 2) }}</td>
                 </tr>
                 <tr>
-                    <td class="total-label">Total Tax Amount</td>
+                    <td class="total-label">Total VAT/Tax</td>
                     <td class="total-value">£ {{ number_format($totalVat, 2) }}</td>
                 </tr>
                 <tr class="grand-total-row">
-                    <td class="total-label">Order Total</td>
+                    <td class="total-label">Order Total (Gross)</td>
                     <td class="total-value">£ {{ number_format($totalGross, 2) }}</td>
                 </tr>
             </table>
         </div>
-        <div class="clear"></div>
     </div>
 
-    {{-- ===== FOOTER NOTES ===== --}}
+    {{-- ===== NOTES & COMMENTS (Float cleared) ===== --}}
     <div class="notes">
         Title of goods on the invoice does not pass to the buyer until invoice is fully paid.<br>
         <strong>Important:</strong> Importers details &amp; nutritional/allergen info supplied for all products.
@@ -441,7 +367,6 @@
         </div>
     @endif
 
-</div>
 </div>
 </body>
 </html>

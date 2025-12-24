@@ -21,33 +21,17 @@ class OrderExport implements FromArray, WithEvents
         $data = [];
 
         $shop = $this->order->shop;
-        $data[] = ['Shop Name', $shop->name ?? ''];
-        $data[] = ['Company Name', $shop->company_name ?? ''];
-        $data[] = ['Reference', $shop->ref ?? ''];
-        $data[] = []; // empty row
 
-        $data[] = ['Order ID', '#'.$this->order->id];
-        $data[] = ['Invoice Number', $this->order->invoice_number];
-        $data[] = ['Total', '£'.number_format($this->order->total, 2)];
-        $data[] = ['Payment Status', ucfirst($this->order->payment_status)];
-        $data[] = ['Created At', $this->order->created_at->format('d M Y, H:i')];
-        $data[] = []; // empty row
-
-        // Product table header
-        $data[] = ['Product', 'Model Number', 'Price (£)', 'Quantity', 'Subtotal (£)'];
+        $data[] = ['ACCOUNTACCOUNT_REF', 'STOCK_CODE', 'QTY_ORDER'];
 
         foreach ($this->order->orderProducts as $item) {
             $data[] = [
-                $item->product->name ?? 'Deleted Product',
+                $shop->ref,
                 $item->product->model_number ?? '',
-                $item->selling_price,
                 $item->quantity,
-                $item->selling_price * $item->quantity,
             ];
         }
 
-        $data[] = [];
-        $data[] = ['Grand Total', '', '', '', $this->order->total];
 
         return $data;
     }

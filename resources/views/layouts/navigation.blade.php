@@ -26,14 +26,12 @@
                 </li>
 
                 {{-- SHOPS --}}
-                @if($perm && $perm->shop == 1)
                 <li class="nav-item">
                     <a class="nav-link @if(request()->routeIs('shop.index')) active @endif"
                        href="{{ route('shop.index') }}">
                         Shops
                     </a>
                 </li>
-                @endif
 
                 {{-- PRODUCTS --}}
                 @if($perm && $perm->product == 1)

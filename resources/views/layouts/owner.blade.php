@@ -212,6 +212,15 @@
                class="nav-link {{ request()->routeIs('owner.reports.sales') ? 'active' : '' }}">
                 <i class="fa fa-line-chart"></i> <span>Sales Reports</span>
             </a>
+            <a href="{{ route('reports.shop-balance') }}"
+   class="nav-link {{ request()->routeIs('reports.shop-balance') ? 'active' : '' }}">
+    <i class="fa fa-building"></i> <span>Shop Balances</span>
+</a>
+{{-- <a href="{{ route('owner.reports.shop-balance') }}"
+   class="nav-link {{ request()->routeIs('owner.reports.shop-balance') ? 'active' : '' }}">
+    <i class="fa fa-building"></i> <span>Shop Balances</span>
+</a> --}}
+
             <a href="{{ url('/') }}" class="nav-link">
                 <i class="fa fa-external-link"></i> <span>Back To Site</span>
             </a>

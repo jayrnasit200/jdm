@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Models\ShopProductPrice;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -40,26 +41,42 @@ class OrderController extends Controller
         }
 
 
+        // public function productorder($shopid)
+        // {
+        //     $products = Product::query()
+        //         ->with('category')
+        //         ->leftJoin('shop_product_prices as spp', function ($join) use ($shopid) {
+        //             $join->on('spp.product_id', '=', 'products.id')
+        //                  ->where('spp.shop_id', '=', $shopid);
+        //         })
+        //         ->select('products.*', DB::raw('COALESCE(spp.price, products.price) as effective_price'))
+        //         ->get()
+        //         ->sortBy(function ($p) {
+        //             $cat = strtolower($p->category->name ?? 'uncategorized');
+        //             $name = strtolower($p->name ?? '');
+        //             return $cat . '|' . $name;
+        //         })
+        //         ->values();
+
+        //     $vatRate = (float) (sys_config('vat') ?? 0);
+
+        //     return view('shops.order', compact('shopid', 'products', 'vatRate'));
+        // }
     // public function productorder($shopid)
     // {
-    //     $products = Product::with('category')->get();
+    //     $products = Product::with('category')
+    //         ->leftJoin('shop_product_prices', function ($join) use ($shopid) {
+    //             $join->on('shop_product_prices.product_id', '=', 'products.id')
+    //                  ->where('shop_product_prices.shop_id', '=', $shopid);
+    //         })
+    //         ->select(
+    //             'products.*',
+    //             DB::raw('COALESCE(shop_product_prices.price, products.price) as effective_price')
+    //         )
+    //         ->get();
+
     //     return view('shops.order', compact('shopid','products'));
     // }
-    public function productorder($shopid)
-    {
-        $products = Product::with('category')
-            ->leftJoin('shop_product_prices', function ($join) use ($shopid) {
-                $join->on('shop_product_prices.product_id', '=', 'products.id')
-                     ->where('shop_product_prices.shop_id', '=', $shopid);
-            })
-            ->select(
-                'products.*',
-                DB::raw('COALESCE(shop_product_prices.price, products.price) as effective_price')
-            )
-            ->get();
-
-        return view('shops.order', compact('shopid','products'));
-    }
     public function placeOrder(Request $request, $shopid)
     {
         try {
@@ -165,7 +182,21 @@ class OrderController extends Controller
             ]);
         }
     }
+    public function productorder($shopid)
+    {
+        $products = Product::with('category')
+            ->leftJoin('shop_product_prices', function ($join) use ($shopid) {
+                $join->on('shop_product_prices.product_id', '=', 'products.id')
+                     ->where('shop_product_prices.shop_id', '=', $shopid);
+            })
+            ->select(
+                'products.*',
+                DB::raw('COALESCE(shop_product_prices.price, products.price) as effective_price')
+            )
+            ->get();
 
+        return view('shops.order', compact('shopid','products'));
+    }
 
     public function orderDetails($id)
     {
@@ -187,8 +218,9 @@ class OrderController extends Controller
 
         $shopRef = $order->shop->ref ?? 'shop';
         $dateTime = now()->format('Ymd_His');
-        $fileName = $shopRef . '_' . $dateTime . '.xlsx';
+        $fileName = $shopRef . '_' . $dateTime . '.csv';
 
+        // The export class OrderExport handles which columns are included
         return Excel::download(new OrderExport($order), $fileName);
     }
 

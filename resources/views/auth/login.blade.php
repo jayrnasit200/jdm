@@ -26,14 +26,14 @@
                             <!-- Email -->
                             <div class="mb-3">
                                 <label for="email" class="form-label">{{ __('Email address') }}</label>
-                                <input 
-                                    type="email" 
-                                    name="email" 
-                                    id="email" 
-                                    value="{{ old('email') }}" 
-                                    class="form-control @error('email') is-invalid @enderror" 
-                                    required 
-                                    autofocus 
+                                <input
+                                    type="email"
+                                    name="email"
+                                    id="email"
+                                    value="{{ old('email') }}"
+                                    class="form-control @error('email') is-invalid @enderror"
+                                    required
+                                    autofocus
                                     autocomplete="username"
                                 >
                                 @error('email')
@@ -44,12 +44,12 @@
                             <!-- Password -->
                             <div class="mb-3">
                                 <label for="password" class="form-label">{{ __('Password') }}</label>
-                                <input 
-                                    type="password" 
-                                    name="password" 
-                                    id="password" 
-                                    class="form-control @error('password') is-invalid @enderror" 
-                                    required 
+                                <input
+                                    type="password"
+                                    name="password"
+                                    id="password"
+                                    class="form-control @error('password') is-invalid @enderror"
+                                    required
                                     autocomplete="current-password"
                                 >
                                 @error('password')
@@ -59,10 +59,10 @@
 
                             <!-- Remember Me -->
                             <div class="form-check mb-3">
-                                <input 
-                                    class="form-check-input" 
-                                    type="checkbox" 
-                                    name="remember" 
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="remember"
                                     id="remember_me"
                                     {{ old('remember') ? 'checked' : '' }}
                                 >
@@ -86,11 +86,11 @@
                         </form>
                     </div>
 
-                    <div class="card-footer text-center">
+                    {{-- <div class="card-footer text-center">
                         <small>
                             {{ __("Don't have an account?") }}
                             <a href="{{ route('register') }}" class="text-primary">{{ __('Register') }}</a>
                         </small>
-                    </div>
+                    </div> --}}
                 </div>
 </x-guest-layout>

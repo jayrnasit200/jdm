@@ -2,11 +2,10 @@
 
 @section('title', 'Product Sales Report')
 
-{{-- Extra CSS for DataTables Buttons --}}
 @push('styles')
-    {{-- Buttons extension (Bootstrap 5 skin) --}}
-    <link rel="stylesheet"
-          href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+    {{-- DataTables core + Buttons (Bootstrap 5 skin) --}}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 @endpush
 
 @section('content')
@@ -28,17 +27,13 @@
 
                 <div class="col-md-3 col-6">
                     <label class="form-label small mb-1">From date</label>
-                    <input type="date"
-                           name="date_from"
-                           value="{{ $dateFrom }}"
+                    <input type="date" name="date_from" value="{{ $dateFrom }}"
                            class="form-control form-control-sm">
                 </div>
 
                 <div class="col-md-3 col-6">
                     <label class="form-label small mb-1">To date</label>
-                    <input type="date"
-                           name="date_to"
-                           value="{{ $dateTo }}"
+                    <input type="date" name="date_to" value="{{ $dateTo }}"
                            class="form-control form-control-sm">
                 </div>
 
@@ -98,16 +93,29 @@
                 </div>
             </div>
         </div>
-
-        {{-- You can add more summary cards if you like --}}
     </div>
 
     {{-- Products Table --}}
     <div class="card shadow-sm">
         <div class="card-body">
+
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="mb-0">Products</h6>
-                <small class="text-muted">Export to Excel / PDF / Print</small>
+                <small class="text-muted">Search + Export (Excel / PDF / Print)</small>
+            </div>
+
+            {{-- ✅ Extra Search Input (Nice UI) --}}
+            <div class="row g-2 mb-2">
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white">
+                            <i class="fa fa-search text-muted"></i>
+                        </span>
+                        <input type="text" id="tableSearch"
+                               class="form-control"
+                               placeholder="Search product, qty, earning...">
+                    </div>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -116,6 +124,7 @@
                         <tr>
                             <th>#</th>
                             <th>Product</th>
+                            <th>Ref</th>
                             <th class="text-end">Total Qty</th>
                             <th class="text-end">Average Price</th>
                             <th class="text-end">Total Earning</th>
@@ -126,13 +135,10 @@
                             <tr>
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $row->name }}</td>
+                                <td>{{ $row->model_number }}</td>
                                 <td class="text-end">{{ $row->total_qty }}</td>
-                                <td class="text-end">
-                                    £{{ number_format($row->avg_price, 2) }}
-                                </td>
-                                <td class="text-end fw-semibold">
-                                    £{{ number_format($row->total_earning, 2) }}
-                                </td>
+                                <td class="text-end">£{{ number_format($row->avg_price, 2) }}</td>
+                                <td class="text-end fw-semibold">£{{ number_format($row->total_earning, 2) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -151,71 +157,68 @@
 @endsection
 
 @push('scripts')
-    {{-- DataTables Buttons dependencies --}}
+    {{-- ✅ REQUIRED: DataTables core --}}
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+    {{-- Buttons --}}
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
 
-    {{-- For Excel export --}}
+    {{-- Excel --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-    {{-- For PDF export --}}
+    {{-- PDF --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
-    {{-- HTML5 export buttons --}}
+    {{-- HTML5 export --}}
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script>
         $(document).ready(function () {
-            if ($('#products-report-table').length) {
 
-                // Dynamic export title with date range
-                var exportTitle = @json(
-                    'Product Sales Report'
-                    .($dateFrom ? ' From '.$dateFrom : '')
-                    .($dateTo ? ' To '.$dateTo : '')
-                );
+            if (!$('#products-report-table').length) return;
 
-                $('#products-report-table').DataTable({
-                    pageLength: 25,
-                    lengthMenu: [25, 50, 100, -1],
-                    order: [[4, 'desc']], // sort by Total Earning
-                    language: {
-                        search: "_INPUT_",
-                        searchPlaceholder: "Search product..."
+            var exportTitle = @json(
+                'Product Sales Report'
+                .($dateFrom ? ' From '.$dateFrom : '')
+                .($dateTo ? ' To '.$dateTo : '')
+            );
+
+            // ✅ Initialize DataTable (includes built-in search too)
+            var table = $('#products-report-table').DataTable({
+                pageLength: 25,
+                lengthMenu: [25, 50, 100, -1],
+                order: [[4, 'desc']],
+                dom:
+                    "<'row mb-2'<'col-sm-6 d-flex align-items-center gap-2'l><'col-sm-6 text-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
+                buttons: [
+                    { extend: 'excelHtml5', title: exportTitle, className: 'btn btn-success btn-sm' },
+                    {
+                        extend: 'pdfHtml5',
+                        title: exportTitle,
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        className: 'btn btn-danger btn-sm',
+                        exportOptions: { columns: [0,1,2,3,4] }
                     },
-                    dom:
-                        "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-end'B>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
-                    buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            title: exportTitle,
-                            className: 'btn btn-success btn-sm'
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            title: exportTitle,
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-                            className: 'btn btn-danger btn-sm',
-                            exportOptions: {
-                                columns: [0,1,2,3,4]
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            title: exportTitle,
-                            className: 'btn btn-secondary btn-sm',
-                            exportOptions: {
-                                columns: [0,1,2,3,4]
-                            }
-                        }
-                    ]
-                });
-            }
+                    {
+                        extend: 'print',
+                        title: exportTitle,
+                        className: 'btn btn-secondary btn-sm',
+                        exportOptions: { columns: [0,1,2,3,4] }
+                    }
+                ]
+            });
+
+            // ✅ Your custom search box controls DataTables search
+            $('#tableSearch').on('keyup', function () {
+                table.search(this.value).draw();
+            });
         });
     </script>
 @endpush

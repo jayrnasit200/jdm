@@ -142,12 +142,31 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
 
     // Sales report
     // Route::get('/owner/reports/sales', [OwnerController::class, 'salesReport'])->name('owner.reports.sales');
-// ✅ Use productReport instead
-Route::get('/reports/products', [OwnerController::class, 'productReport'])
+    Route::get('/reports/products', [OwnerController::class, 'productReport'])
     ->name('reports.products');
 Route::get('/reports/products', [OwnerController::class, 'productReport'])
     ->middleware(['auth', 'role:owner'])
     ->name('owner.reports.products');
+    Route::get('/reports/shop-balance', [OwnerController::class, 'shopBalanceReport'])
+    ->name('reports.shop-balance');
+ // ✅ NEW: Shop details page
+ Route::get('/shops/{shop}/details', [OwnerController::class, 'shopDetails'])
+ ->name('shops.details');
+
+// ✅ NEW: Ajax endpoint for order items (modal)
+Route::get('/orders/{order}/items', [OwnerController::class, 'orderItems'])
+ ->name('orders.items');
+    // Shop balances report
+    Route::get('/reports/shop-balance', [OwnerController::class, 'shopBalanceReport'])
+    ->name('reports.shop-balance');
+
+// Shop details page
+Route::get('/shops/{shop}/details', [OwnerController::class, 'shopDetails'])
+    ->name('shops.details');
+
+// AJAX: order items (for popup)
+Route::get('/orders/{order}/items', [OwnerController::class, 'orderItems'])
+    ->name('orders.items');
 });
 
 require __DIR__.'/auth.php';
