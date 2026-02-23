@@ -25,9 +25,9 @@
                                 <label for="name" class="form-label">{{ __('Category Name') }}</label>
                                 <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" required>
                             </div>
-                           
+
                             <div class="d-flex justify-content-between">
-                                <a href="{{ route('customere') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
+                                <a href="{{ URL('/category') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                                 <button type="submit" class="btn btn-primary">{{ __('Add Category') }}</button>
                             </div>
                         </form>

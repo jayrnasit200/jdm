@@ -245,6 +245,11 @@
                     <div class="card-title">Order Information</div>
                     <table class="meta-table">
                         <tr>
+                            <td class="meta-label">Seller Name</td>
+                            <td class="meta-value">{{ $order->seller->name }}</td>
+                        </tr>
+
+                        <tr>
                             <td class="meta-label">Order No</td>
                             <td class="meta-value">{{ $order->invoice_number }}</td>
                         </tr>
@@ -253,9 +258,13 @@
                             <td class="meta-value">{{ $order->created_at->format('d/m/Y') }}</td>
                         </tr>
                         <tr>
+                            <td class="meta-label">Time</td>
+                            <td class="meta-value">{{ $order->created_at->format('h:i A') }}</td>
+                        </tr>
+                        {{-- <tr>
                             <td class="meta-label">PO No</td>
                             <td class="meta-value">{{ $order->po_number ?? 'N/A' }}</td>
-                        </tr>
+                        </tr> --}}
                         <tr>
                             <td class="meta-label">Account Ref</td>
                             <td class="meta-value">{{ $order->shop->ref ?? 'N/A' }}</td>

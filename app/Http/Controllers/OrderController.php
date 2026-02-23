@@ -228,8 +228,10 @@ class OrderController extends Controller
 
     public function generateInvoice($id)
     {
-        $order = Order::with(['orderProducts.product', 'shop'])->findOrFail($id);
-
+        $order = Order::with(['orderProducts.product', 'shop',    'seller'        ])->findOrFail($id);
+//         print_r("<pre>`");
+// print_r($order);
+// exit;
         $pdf = Pdf::loadView('orders.invoice', [
             'order' => $order,
             'shop' => $order->shop,

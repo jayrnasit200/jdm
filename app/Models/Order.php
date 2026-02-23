@@ -35,7 +35,7 @@ public function shop()
 public function seller()
 {
     // ✅ If your orders table has a 'seller_id' column:
-    return $this->belongsTo(User::class, 'seller_id');
+    return $this->belongsTo(User::class, 'sellar_id');
 
     // ❗ If your column is called 'user_id' instead, then use this:
     // return $this->belongsTo(User::class, 'user_id');
