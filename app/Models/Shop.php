@@ -31,4 +31,8 @@ class Shop extends Model
     {
         return $this->hasMany(Order::class, 'shop_id', 'id');
     }
+    public function shopAccess()
+    {
+        return $this->hasMany(Shopaccess::class, 'shop_id');
+    }
 }

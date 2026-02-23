@@ -277,17 +277,25 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end mb-2">
-                        <button id="btnGenerateProductReport" class="btn btn-sm btn-primary rounded-pill">
+                    <div class="d-flex justify-content-between mb-2">
+                        <button id="btnGenerateProductReport"
+                                class="btn btn-sm btn-primary rounded-pill">
                             Generate Report
                         </button>
+
+                        <button id="btnDownloadProductExcel"
+                                class="btn btn-sm btn-outline-success rounded-pill">
+                            <i class="fa fa-file-excel-o me-1"></i> Download Excel
+                        </button>
                     </div>
+
 
                     <div class="table-responsive" style="max-height: 230px; overflow-y:auto;">
                         <table class="table table-sm table-striped mb-0" style="font-size:0.75rem;">
                             <thead>
                                 <tr>
                                     <th>Product</th>
+                                    <th>Code</th>
                                     <th>Qty</th>
                                     <th>Sales (£)</th>
                                 </tr>
@@ -301,6 +309,7 @@
                                                 <br><small class="text-muted">Code: {{ $row->product->model_number }}</small>
                                             @endif
                                         </td>
+                                        <td>{{ $row->product->model_number }}</td>
                                         <td>{{ (int) $row->total_qty }}</td>
                                         <td>£{{ number_format($row->total_sales, 2) }}</td>
                                     </tr>
@@ -337,6 +346,7 @@
                                 <th>#</th>
                                 <th>Order</th>
                                 <th>Shop</th>
+                                <th>Ref</th>
                                 <th>Date</th>
                                 <th>Total (£)</th>
                                 <th>Status</th>
@@ -351,6 +361,7 @@
                                     <td>{{ $order->id }}</td>
                                     <td>{{ $order->invoice_number }}</td>
                                     <td>{{ $order->shop->shopname ?? 'N/A' }}</td>
+                                    <td>{{ $order->shop->ref ?? 'N/A' }}</td>
                                     <td>{{ $order->created_at->format('d M Y') }}</td>
                                     <td>£{{ number_format($order->total, 2) }}</td>
                                     <td>
@@ -748,6 +759,54 @@
                     });
                 }
             });
+            // ===============================
+// Product Report – Excel Download
+// ===============================
+const btnDownloadExcel = document.getElementById('btnDownloadProductExcel');
+
+btnDownloadExcel.addEventListener('click', () => {
+    const rows = document.querySelectorAll('#productReportBody tr');
+
+    if (!rows.length) {
+        alert('No product data to export.');
+        return;
+    }
+
+    let csv = [];
+    csv.push(['Product', 'Code', 'Quantity Sold', 'Total Sales (£)'].join(','));
+
+    rows.forEach(tr => {
+        const cols = tr.querySelectorAll('td');
+        if (!cols.length) return;
+
+        const product = cols[0].innerText.replace(/\n/g, ' ').trim();
+        const qty     = cols[1]?.innerText.trim() ?? '';
+        const sales   = cols[2]?.innerText.replace('£','').trim() ?? '';
+
+        csv.push([
+            `"${product}"`,
+            '',
+            qty,
+            sales
+        ].join(','));
+    });
+
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    const range = document.getElementById('productReportRange').value;
+    a.href = url;
+    a.download = `product-selling-report-${range}.csv`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});
+
         </script>
     @endpush
 </x-app-layout>

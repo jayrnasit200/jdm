@@ -16,28 +16,37 @@ class SellerController extends Controller
 
     public function index()
     {
+        $sellerShopIds = \App\Models\Shopaccess::where('seller_id', auth()->id())
+    ->pluck('shop_id');
+
         $now = now();
 
         // 🗓 This Week
         $ordersWeek = Order::with('shop')
-            ->whereBetween('created_at', [
-                $now->copy()->startOfWeek(),
-                $now->copy()->endOfWeek(),
-            ])->get();
+        ->whereIn('shop_id', $sellerShopIds)
+        ->whereBetween('created_at', [
+            $now->copy()->startOfWeek(),
+            $now->copy()->endOfWeek(),
+        ])->get();
+
 
         // 🗓 This Month
         $ordersMonth = Order::with('shop')
-            ->whereBetween('created_at', [
-                $now->copy()->startOfMonth(),
-                $now->copy()->endOfMonth(),
-            ])->get();
+        ->whereIn('shop_id', $sellerShopIds)
+        ->whereBetween('created_at', [
+            $now->copy()->startOfMonth(),
+            $now->copy()->endOfMonth(),
+        ])->get();
+
 
         // 🗓 This Year
         $ordersYear = Order::with('shop')
-            ->whereBetween('created_at', [
-                $now->copy()->startOfYear(),
-                $now->copy()->endOfYear(),
-            ])->get();
+        ->whereIn('shop_id', $sellerShopIds)
+        ->whereBetween('created_at', [
+            $now->copy()->startOfYear(),
+            $now->copy()->endOfYear(),
+        ])->get();
+
 
         // 🔹 helper for stats
         $stats = function ($orders) {
@@ -55,7 +64,8 @@ class SellerController extends Controller
         $monthStats = $stats($ordersMonth);
         $yearStats  = $stats($ordersYear);
 
-        $totalShops = Shop::count();
+        $totalShops = Shop::whereIn('id', $sellerShopIds)->count();
+
 
         // 🔹 Sales chart data (week)
         $weekChartData = $ordersWeek
@@ -94,16 +104,18 @@ class SellerController extends Controller
 
         // Default product report for THIS WEEK (for first load)
         $productReportWeek = OrderProduct::selectRaw('products_id, SUM(quantity) as total_qty, SUM(quantity * selling_price) as total_sales')
-            ->whereHas('order', function ($q) use ($now) {
-                $q->whereBetween('created_at', [
-                    $now->copy()->startOfWeek(),
-                    $now->copy()->endOfWeek(),
-                ]);
-            })
-            ->with('product')
-            ->groupBy('products_id')
-            ->orderByDesc('total_qty')
-            ->get();
+    ->whereHas('order', function ($q) use ($now, $sellerShopIds) {
+        $q->whereIn('shop_id', $sellerShopIds)
+          ->whereBetween('created_at', [
+              $now->copy()->startOfWeek(),
+              $now->copy()->endOfWeek(),
+          ]);
+    })
+    ->with('product')
+    ->groupBy('products_id')
+    ->orderByDesc('total_qty')
+    ->get();
+
 
         return view('seller.dashboard', compact(
             'totalShops',

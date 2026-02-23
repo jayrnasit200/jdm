@@ -3,14 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shop;
+use App\Models\Shopaccess;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ShopController extends Controller
 {
     // Show all shops
     public function index()
     {
-        $shops = Shop::all();
+        $shops = Shop::whereHas('shopAccess', function ($query) {
+            $query->where('seller_id', auth()->id());
+        })->get();
+
         return view('shops.index', compact('shops'));
     }
 
@@ -38,7 +43,7 @@ class ShopController extends Controller
             'Staffnumber2' => 'nullable|string|max:20',
         ]);
 
-        Shop::create([
+        $shop = Shop::create([
             'company_name' => $request->company_name,
             'ref' => $request->ref,
             'shopname' => $request->shopname,
@@ -52,6 +57,11 @@ class ShopController extends Controller
             'Staffnumber1' => $request->Staffnumber1,
             'Staffnumber2' => $request->Staffnumber2,
         ]);
+        Shopaccess::create([
+            'shop_id' => $shop->id,
+            'seller_id' => auth()->id(),
+        ]);
+
 
         return redirect()->route('shops.index')->with('success', 'Shop added successfully.');
     }

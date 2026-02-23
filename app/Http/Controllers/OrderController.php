@@ -19,7 +19,9 @@ use Illuminate\Support\Str;
 class OrderController extends Controller
 {
     public function index() {
-        $shops = Shop::all();
+        $shops = Shop::whereHas('shopAccess', function ($query) {
+            $query->where('seller_id', auth()->id());
+        })->get();
         return view('shops.listshop', compact('shops'));
     }
 
@@ -452,5 +454,35 @@ private function refreshOrderTotals(Order $order): void
 
     $order->save();
 }
+public function deleteOrder(Request $request, $id)
+{
+$order = Order::with('orderProducts')->findOrFail($id);
 
+
+// 🔁 Delete invoice file if exists
+if (!empty($order->invoice) && Storage::disk('public')->exists($order->invoice)) {
+Storage::disk('public')->delete($order->invoice);
+}
+
+
+// 🔥 Delete order products first (important for FK constraints)
+OrderProduct::where('orders_id', $order->id)->delete();
+
+
+// ❌ Delete the order itself
+$order->delete();
+
+
+// JSON response for AJAX
+if ($request->expectsJson()) {
+return response()->json([
+'success' => true,
+'message' => 'Order deleted successfully',
+]);
+}
+
+
+// Normal redirect
+return redirect()->back()->with('success', 'Order deleted successfully!');
+}
 }

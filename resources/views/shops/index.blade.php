@@ -28,7 +28,7 @@
                                 <th>Shop Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                               
+
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -40,7 +40,7 @@
                                     <td>{{ $shop->shopname }}</td>
                                     <td>{{ $shop->email }}</td>
                                     <td>{{ $shop->phone }}</td>
-                                    
+
                                     <td class="text-end">
                                         {{-- Edit Button --}}
                                         <a href="{{ route('shops.edit', $shop->id) }}" class="btn btn-sm btn-warning">
@@ -88,7 +88,7 @@
                                                                 Yes, Delete
                                                             </button>
                                                         </form>
-                                                        
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -106,20 +106,34 @@
 
     {{-- Include DataTables CDN --}}
     @push('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/2.3.7/css/dataTables.dataTables.min.css">
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
         <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
         <script>
             $(document).ready(function() {
-                $('#shopsTable').DataTable({
-                    pageLength: 10,
-                    order: [[0, 'desc']],
-                    language: {
-                        search: "_INPUT_",
-                        searchPlaceholder: "Search shops..."
-                    }
-                });
+
+if (!$.fn.DataTable.isDataTable('#shopsTable')) {
+    $('#shopsTable').DataTable({
+        pageLength: 10,
+        order: [[0, 'desc']],
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search shops..."
+        }
+    });
+}
+
+// Auto-hide success alert
+const alert = document.querySelector('.alert-success');
+if(alert){
+    setTimeout(() => new bootstrap.Alert(alert).close(), 4000);
+}
+});
+
+            $(document).ready(function() {
+
 
                 // Auto-hide success alert
                 const alert = document.querySelector('.alert-success');

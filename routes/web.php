@@ -114,6 +114,7 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::post('/orders/{order}/update-item', [OrderController::class, 'updateItem'])->name('order.updateItem');
     Route::get('/orders/{order}/send-whatsapp-group', [CartController::class, 'sendToWhatsappGroup'])
     ->name('orders.sendWhatsappGroup');
+    Route::delete('/order.delete/{id}', [OrderController::class, 'deleteOrder'])->name('orders.delete');
 // Remove product
 // Route::delete('/orders/{id}/remove-product/{productId}', [OrderController::class, 'removeProductFromOrder'])->name('order.removeProduct');
 Route::delete('/orders/{order}/remove-product/{product}', [OrderController::class, 'removeProductFromOrder'])
