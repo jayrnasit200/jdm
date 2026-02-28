@@ -10,6 +10,7 @@ use App\Models\UserPermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use DB;
+use Carbon\Carbon;
 
 class OwnerController extends Controller
 {
@@ -372,8 +373,68 @@ public function shopDetails(Shop $shop)
         'productsSummary'
     ));
 }
+public function weekreport(Request $request)  {
+     $from = $request->from_date
+        ? Carbon::parse($request->from_date)->startOfDay()
+        : Carbon::now()->startOfWeek();
 
+    $to = $request->to_date
+        ? Carbon::parse($request->to_date)->endOfDay()
+        : Carbon::now()->endOfWeek();
 
+    $weeklyOrders = Order::with(['shop','seller'])
+        ->whereBetween('created_at', [$from, $to])
+        ->orderBy('created_at','desc')
+        ->get();
+
+    $sellerSummary = $weeklyOrders
+        ->groupBy(fn($o) => $o->seller->name ?? 'Unknown')
+        ->map(fn($orders) => [
+            'total_orders' => $orders->count(),
+            'total_sales' => $orders->sum('total'),
+        ]);
+        return view('owner.weekreport', compact(
+            'weeklyOrders','sellerSummary','from','to'
+        ));
+
+// return view('owner.weekreport',  compact('weeklyOrders', 'sellerSummary'));
+}
+public function weeklyOrders(Request $request)
+{
+    // Default = This Week
+    $from = $request->from_date
+        ? Carbon::parse($request->from_date)->startOfDay()
+        : Carbon::now()->startOfWeek();
+
+    $to = $request->to_date
+        ? Carbon::parse($request->to_date)->endOfDay()
+        : Carbon::now()->endOfWeek();
+
+    // Get Orders Between Selected Dates
+    $weeklyOrders = Order::with(['shop', 'seller'])
+        ->whereBetween('created_at', [$from, $to])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Seller Summary
+    $sellerSummary = $weeklyOrders
+        ->groupBy(function ($order) {
+            return $order->seller->name ?? 'Unknown';
+        })
+        ->map(function ($orders) {
+            return [
+                'total_orders' => $orders->count(),
+                'total_sales' => $orders->sum('total'),
+            ];
+        });
+
+    return view('owner.weekly-orders', compact(
+        'weeklyOrders',
+        'sellerSummary',
+        'from',
+        'to'
+    ));
+}
 public function orderItems(Order $order)
 {
     // FIX: order items table is orders_products

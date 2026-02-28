@@ -204,6 +204,10 @@
                class="nav-link {{ request()->routeIs('owner.dashboard') ? 'active' : '' }}">
                 <i class="fa fa-home"></i> <span>Dashboard</span>
             </a>
+            <a href="{{ route('weekreport') }}"
+               class="nav-link {{ request()->routeIs('weekreport') ? 'active' : '' }}">
+                <i class="fa fa-calendar"></i> <span>This Week</span>
+            </a>
             <a href="{{ route('owner.sellers.index') }}"
                class="nav-link {{ request()->routeIs('owner.sellers.*') ? 'active' : '' }}">
                 <i class="fa fa-users"></i> <span>Sellers</span>

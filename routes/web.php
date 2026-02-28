@@ -140,7 +140,9 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::post('/owner/sellers', [OwnerController::class, 'sellersStore'])->name('owner.sellers.store');
     Route::post('/owner/sellers/{seller}/permissions', [OwnerController::class, 'updatePermissions'])
     ->name('owner.sellers.permissions.update');
-
+    Route::get('/owner/weekreport', [OwnerController::class, 'weekreport'])->name('weekreport');
+    // Route::get('/owner/weekly-orders', [OwnerController::class, 'weeklyOrders'])
+    // ->name('owner.weekly-orders');
     // Sales report
     // Route::get('/owner/reports/sales', [OwnerController::class, 'salesReport'])->name('owner.reports.sales');
     Route::get('/reports/products', [OwnerController::class, 'productReport'])
