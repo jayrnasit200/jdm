@@ -6,7 +6,7 @@
 <div class="container-fluid py-3">
 
     {{-- ===== HEADER ===== --}}
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
         <div>
             <h4 class="mb-0">{{ $shop->company_name }}</h4>
             <small class="text-muted">

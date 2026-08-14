@@ -1,6 +1,8 @@
 @extends('layouts.owner')
 
 @section('title', 'Product Sales Report')
+@section('page_title', 'Sales Reports')
+@section('page_subtitle', 'See total quantity and earnings per product.')
 
 @push('styles')
     {{-- DataTables core + Buttons (Bootstrap 5 skin) --}}
@@ -11,7 +13,7 @@
 @section('content')
 <div class="container-fluid py-3">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-3">
         <div>
             <h4 class="mb-0">Product Sales Report</h4>
             <small class="text-muted">
@@ -192,8 +194,10 @@
                 pageLength: 25,
                 lengthMenu: [25, 50, 100, -1],
                 order: [[4, 'desc']],
+                scrollX: true,
+                autoWidth: false,
                 dom:
-                    "<'row mb-2'<'col-sm-6 d-flex align-items-center gap-2'l><'col-sm-6 text-end'B>>" +
+                    "<'row mb-2'<'col-12 col-md-6 d-flex align-items-center gap-2 mb-2 mb-md-0'l><'col-12 col-md-6 text-md-end'B>>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
                 buttons: [

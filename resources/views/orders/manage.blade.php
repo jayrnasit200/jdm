@@ -167,7 +167,7 @@
 
                             @if($order->invoice)
                                 @php
-                                    $url   = asset('storage/' . $order->invoice);
+                                    $url   = media_url($order->invoice);
                                     $isPdf = \Illuminate\Support\Str::endsWith(strtolower($order->invoice), '.pdf');
                                 @endphp
                                 <a href="{{ $url }}"
@@ -181,7 +181,7 @@
                         {{-- Small preview below (optional) --}}
                         @if($order->invoice)
                             @php
-                                $url   = asset('storage/' . $order->invoice);
+                                $url   = media_url($order->invoice);
                                 $isPdf = \Illuminate\Support\Str::endsWith(strtolower($order->invoice), '.pdf');
                             @endphp
                             <div class="mt-2">

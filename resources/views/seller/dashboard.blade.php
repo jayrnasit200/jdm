@@ -309,7 +309,8 @@
                                                 <br><small class="text-muted">Code: {{ $row->product->model_number }}</small>
                                             @endif
                                         </td>
-                                        <td>{{ $row->product->model_number }}</td>
+                                        {{-- <td>{{ $row->product->model_number }}</td> --}}
+                                        <td>{{ $row->product->model_number ?? 'N/A' }}</td>
                                         <td>{{ (int) $row->total_qty }}</td>
                                         <td>£{{ number_format($row->total_sales, 2) }}</td>
                                     </tr>

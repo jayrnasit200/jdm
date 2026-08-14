@@ -1,5 +1,5 @@
 <x-app-layout>
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         body {
             background: #f3f4f6;
@@ -581,57 +581,64 @@
             const comments = document.getElementById('orderComments').value;
 
             const transformedCart = Object.keys(cart).map(id => {
-                const item = cart[id];
+    const item = cart[id];
 
-                const qty    = parseInt(item.quantity) || 0;
-                const price  = parseFloat(item.price) || 0; // ex-VAT (possibly discounted)
-                const original = item.original_price !== undefined
-                    ? parseFloat(item.original_price) || price
-                    : price;
-
-                const discountPerUnit = original > price ? (original - price) : 0;
-                const discountTotal   = discountPerUnit * qty;
-
-                const vatFlag = item.vat ?? 'no';
-                const vatRate = item.vat_rate ?? null;
-
-                return {
-                    ...item,
-                    quantity: qty,
-                    original_price: Number(original.toFixed(2)),   // ex-VAT original
-                    price_ex_vat:  Number(price.toFixed(2)),       // ex-VAT current
-                    price:         Number(price.toFixed(2)),       // still ex-VAT
-                    vat:           vatFlag,
-                    vat_rate:      vatRate,
-                    discount_per_unit: Number(discountPerUnit.toFixed(2)),
-                    discount_total:     Number(discountTotal.toFixed(2)),
-                };
-            });
+    return {
+        id: id,
+        quantity: parseInt(item.quantity) || 1,
+        price: parseFloat(item.price) || 0,
+        vat: item.vat || 'no',
+        vat_rate: item.vat_rate || 0
+    };
+});
 
             try {
                 const response = await fetch(checkoutForm.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        cart_data: transformedCart,
-                        comments_about_your_order: comments
-                    })
-                });
+    method: 'POST',
+    headers: {
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        cart_data: transformedCart,
+        comments_about_your_order: comments
+    })
+});
 
-                const data = await response.json();
+const data = await response.json();
 
-                if (data.success) {
-                    localStorage.removeItem(cartKey);
+if (data.success) {
+      localStorage.removeItem(cartKey);
                     localStorage.removeItem(discountKey);
-                    alert('✅ Order placed successfully!');
-                    window.location.href = `/orders/${data.order_id}`;
-                } else {
-                    alert('❌ ' + data.message);
-                }
+    alert('✅ Order placed successfully!');
+    window.location.href = `/orders/${data.order_id}`;
+} else {
+    alert('❌ ' + data.message);
+}
+                // const response = await fetch(checkoutForm.action, {
+                //     method: 'POST',
+                //     headers: {
+                //         'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                //         'Accept': 'application/json',
+                //         'Content-Type': 'application/json'
+                //     },
+                //     body: JSON.stringify({
+                //         cart_data: transformedCart,
+                //         comments_about_your_order: comments
+                //     })
+                // });
+
+                // const data = await response.json();
+
+                // if (data.success) {
+                //     // localStorage.removeItem(cartKey);
+                //     // localStorage.removeItem(discountKey);
+                //     alert('✅ Order placed successfully!');
+                //     window.location.href = `/orders/${data.order_id}`;
+                // } else {
+                //     alert('❌ ' + data.message);
+                // }
             } catch (err) {
                 console.error(err);
                 alert('⚠️ Something went wrong.');

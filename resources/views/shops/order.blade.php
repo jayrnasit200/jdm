@@ -190,20 +190,23 @@
         <!-- Product Grid -->
         <div id="product-grid" class="row g-4">
             @foreach ($products as $product)
+
                 @php
-                    $includeVat   = $product->vat === 'yes';       // "yes" / "no"
-                    $priceForCart = $product->price;               // ex-VAT
+                    $includeVat = $product->vat === 'yes';
+
+                    // IMPORTANT: use effective_price from query
+                    $priceForCart = $product->effective_price ?? $product->price;
 
                     $productData = [
                         'id'            => $product->id,
                         'name'          => $product->name,
-                        'price'         => $priceForCart,                       // ex-VAT
+                        'price'         => $priceForCart,
                         'shop_id'       => $shopid ?? 1,
                         'category'      => $product->category->name ?? 'Uncategorized',
                         'special_offer' => $product->special_offer,
                         'status'        => $product->status,
-                        'vat'           => $product->vat,                       // "yes" or "no"
-                        'vat_rate'      => $includeVat ? $vatRate : 0,         // e.g. 20 or 0
+                        'vat'           => $product->vat,
+                        'vat_rate'      => $includeVat ? $vatRate : 0,
                     ];
                 @endphp
 
@@ -211,6 +214,7 @@
                      data-category="{{ $product->category->name ?? 'Uncategorized' }}"
                      data-offer="{{ $product->special_offer ? '1' : '0' }}"
                      data-status="{{ $product->status ?? 'active' }}"
+                     data-code="{{ $product->model_number ?? '' }}"
                      data-code="{{ $product->product_code ?? '' }}">
                     <div class="card h-100 shadow-sm border-0 overflow-hidden position-relative">
 
@@ -222,7 +226,7 @@
                         @endif
 
                         <!-- Clickable Image (opens modal) -->
-                        <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://media.licdn.com/dms/image/v2/D4D0BAQH6Mvw_HQhbtg/company-logo_200_200/B4DZXHz0dTH4AI-/0/1742814005705/jdm_distributors_logo?e=2147483647&v=beta&t=w9nO0U2WNKxgnvJKZgVaEDsOoELjbbix2y_6NeSOh5o' }}"
+                        <img src="{{ $product->image ? media_url($product->image) : 'https://media.licdn.com/dms/image/v2/D4D0BAQH6Mvw_HQhbtg/company-logo_200_200/B4DZXHz0dTH4AI-/0/1742814005705/jdm_distributors_logo?e=2147483647&v=beta&t=w9nO0U2WNKxgnvJKZgVaEDsOoELjbbix2y_6NeSOh5o' }}"
                              class="card-img-top product-detail-trigger"
                              style="height:180px;object-fit:cover;cursor:pointer"
                              alt="{{ $product->name }}"
@@ -278,7 +282,7 @@
                             </div>
                             <div class="modal-body row">
                                 <div class="col-md-5 mb-3 mb-md-0">
-                                    <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://via.placeholder.com/400x300?text=No+Image' }}"
+                                    <img src="{{ $product->image ? media_url($product->image) : 'https://via.placeholder.com/400x300?text=No+Image' }}"
                                          class="img-fluid rounded"
                                          alt="{{ $product->name }}">
                                 </div>
@@ -512,10 +516,16 @@
 
                 document.querySelectorAll('.product-card').forEach(card => {
                     const name = card.querySelector('.card-title').textContent.toLowerCase();
-                    const category = (card.dataset.category || '').toLowerCase();
-                    const offer = card.dataset.offer;
+const category = (card.dataset.category || '').toLowerCase();
+const code = (card.dataset.code || '').toLowerCase();
+const offer = card.dataset.offer;
+const matchesSearch =
+    name.includes(query) ||
+    category.includes(query) ||
+    code.includes(query);
 
-                    const matchesSearch = name.includes(query) || category.includes(query);
+
+
 
                     let matchesFilter = true;
                     if (activeFilter === 'offer') {

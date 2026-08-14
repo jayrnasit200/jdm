@@ -1,11 +1,13 @@
 @extends('layouts.owner')
 
 @section('title', 'Shop Balances')
+@section('page_title', 'Shop Balances')
+@section('page_subtitle', 'Paid and outstanding balances by shop.')
 
 @section('content')
 <div class="container-fluid py-3">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-3">
         <div>
             <h4 class="mb-0">Shop Balances</h4>
             <small class="text-muted">Paid = orders with payment_status = success</small>

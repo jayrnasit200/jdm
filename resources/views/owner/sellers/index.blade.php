@@ -8,16 +8,51 @@
     <div class="container-fluid px-0">
         @if(session('success'))
             <div class="alert alert-success py-2 mb-3">{{ session('success') }}</div>
-        @endif>
+        @endif
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 owner-toolbar">
             <h6 class="mb-0">All Sellers</h6>
             <a href="{{ route('owner.sellers.create') }}" class="btn btn-sm btn-dark">
                 <i class="fa fa-plus me-1"></i> Add Seller
             </a>
         </div>
 
-        <div class="card shadow-soft border-0">
+        <div class="d-md-none d-flex flex-column gap-2 mb-3">
+            @forelse($sellers as $seller)
+                @php $perm = $seller->permission; @endphp
+                <div class="card shadow-soft border-0">
+                    <div class="card-body py-3">
+                        <div class="fw-semibold">{{ $seller->name }}</div>
+                        <div class="small text-muted mb-2 text-break">{{ $seller->email }}</div>
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span class="badge {{ $perm?->shop ? 'bg-success bg-opacity-75' : 'bg-secondary bg-opacity-50' }}">Shop</span>
+                            <span class="badge {{ $perm?->products ? 'bg-success bg-opacity-75' : 'bg-secondary bg-opacity-50' }}">Products</span>
+                            <span class="badge {{ $perm?->categories ? 'bg-success bg-opacity-75' : 'bg-secondary bg-opacity-50' }}">Categories</span>
+                            <span class="badge {{ $perm?->discounts ? 'bg-success bg-opacity-75' : 'bg-secondary bg-opacity-50' }}">Discounts</span>
+                        </div>
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm w-100 btn-permissions"
+                                data-bs-toggle="modal"
+                                data-bs-target="#permissionsModal"
+                                data-seller-id="{{ $seller->id }}"
+                                data-seller-name="{{ $seller->name }}"
+                                data-action="{{ route('owner.sellers.permissions.update', $seller->id) }}"
+                                data-perm-shop="{{ $perm?->shop ? 1 : 0 }}"
+                                data-perm-products="{{ $perm?->products ? 1 : 0 }}"
+                                data-perm-categories="{{ $perm?->categories ? 1 : 0 }}"
+                                data-perm-discounts="{{ $perm?->discounts ? 1 : 0 }}">
+                            <i class="fa fa-lock me-1"></i> Permissions
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="card shadow-soft border-0">
+                    <div class="card-body text-center text-muted">No sellers found.</div>
+                </div>
+            @endforelse
+        </div>
+
+        <div class="card shadow-soft border-0 d-none d-md-block">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-sm mb-0 align-middle">

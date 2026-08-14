@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\OwnerController;
+use App\Http\Controllers\OwnerProductController;
+use App\Http\Controllers\OwnerShopController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SubCustomerController;
 use App\Http\Controllers\ProductController;
@@ -16,6 +18,21 @@ use App\Http\Controllers\Admin\AdminSellerController;
 use App\Http\Controllers\Admin\AdminSalesReportController;
 
 use App\Models\Product;
+
+Route::get('/storage/{path}', function (string $path) {
+    if (str_contains($path, '..')) {
+        abort(404);
+    }
+
+    $base = realpath(storage_path('app/public'));
+    $full = realpath(storage_path('app/public/'.$path));
+
+    if ($base === false || $full === false || ! str_starts_with($full, $base) || ! is_file($full)) {
+        abort(404);
+    }
+
+    return response()->file($full);
+})->where('path', '.*')->name('storage.media');
 
 // Route::get('/', function () {
 //     $products = Product::with('category')->orderBy('name')->get();
@@ -84,6 +101,7 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
+    Route::post('/products/bulk-status', [ProductController::class, 'bulkStatus'])->name('products.bulk-status');
     Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/update/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/destroy/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
@@ -140,6 +158,24 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::post('/owner/sellers', [OwnerController::class, 'sellersStore'])->name('owner.sellers.store');
     Route::post('/owner/sellers/{seller}/permissions', [OwnerController::class, 'updatePermissions'])
     ->name('owner.sellers.permissions.update');
+
+    // Shop access
+    Route::get('/owner/shops', [OwnerShopController::class, 'index'])->name('owner.shops.index');
+    Route::post('/owner/shops/{shop}/access', [OwnerShopController::class, 'updateAccess'])
+        ->name('owner.shops.access.update');
+
+    // Product management
+    Route::get('/owner/products', [OwnerProductController::class, 'index'])->name('owner.products.index');
+    Route::get('/owner/products/create', [OwnerProductController::class, 'create'])->name('owner.products.create');
+    Route::post('/owner/products', [OwnerProductController::class, 'store'])->name('owner.products.store');
+    Route::post('/owner/products/bulk-status', [OwnerProductController::class, 'bulkStatus'])
+        ->name('owner.products.bulk-status');
+    Route::get('/owner/products/subcategories/{category}', [OwnerProductController::class, 'getSubcategories'])
+        ->name('owner.products.subcategories');
+    Route::get('/owner/products/{product}/edit', [OwnerProductController::class, 'edit'])->name('owner.products.edit');
+    Route::put('/owner/products/{product}', [OwnerProductController::class, 'update'])->name('owner.products.update');
+    Route::delete('/owner/products/{product}', [OwnerProductController::class, 'destroy'])->name('owner.products.destroy');
+
     Route::get('/owner/weekreport', [OwnerController::class, 'weekreport'])->name('weekreport');
     // Route::get('/owner/weekly-orders', [OwnerController::class, 'weeklyOrders'])
     // ->name('owner.weekly-orders');

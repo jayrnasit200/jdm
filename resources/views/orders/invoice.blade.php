@@ -194,7 +194,9 @@
             padding-top: 10px;
             line-height: 1.5;
         }
-
+        .text-danger{
+            color: red;
+        }
         .comments-box {
             margin-top: 10px;
             font-size: 10px;
@@ -281,6 +283,8 @@
         $totalNet = 0;
         $totalVat = 0;
         $totalGross = 0;
+            $totalQty = 0;
+
     @endphp
 
     {{-- ===== ITEMS TABLE (No Change) ===== --}}
@@ -290,8 +294,10 @@
             <th class="qty-col">Qty</th>
             <th class="code-col">Code</th>
             <th class="desc-col">Description</th>
+            <th class="money-col">Net Pro</th>
+
             <th class="money-col">Net</th>
-            <th class="money-col">VAT%</th>
+            {{-- <th class="money-col">VAT%</th> --}}
             <th class="money-col">VAT</th>
             <th class="money-col">Total</th>
         </tr>
@@ -323,14 +329,20 @@
                 $totalNet += $lineNet;
                 $totalVat += $lineVat;
                 $totalGross += $lineGross;
+                $totalQty += $qty;
             @endphp
 
             <tr>
                 <td class="qty-col text-center">{{ $qty }}</td>
                 <td class="code-col">{{ optional($item->product)->model_number }}</td>
                 <td class="desc-col">{{ optional($item->product)->name }}</td>
+                {{-- <td  class="money-col text-right">{{ optional($item->product)->price }}</td> --}}
+                {{-- <td  class="money-col text-right">{{ number_format($unitNet, 2)  }}</td> --}}
+                <td class="money-col text-right {{ optional($item->product)->price == $unitNet ? '' : 'text-danger' }}">
+                    {{ number_format($unitNet, 2) }}
+                </td>
                 <td class="money-col text-right">{{ number_format($lineNet, 2) }}</td>
-                <td class="money-col text-right">{{ number_format($vatPercent, 2) }}</td>
+                {{-- <td class="money-col text-right">{{ number_format($vatPercent, 2) }}</td> --}}
                 <td class="money-col text-right">{{ number_format($lineVat, 2) }}</td>
                 <td class="money-col text-right">{{ number_format($lineGross, 2) }}</td>
             </tr>
@@ -346,6 +358,10 @@
         </div>
         <div class="totals">
             <table>
+                <tr>
+                    <td class="total-label">Total Boxes</td>
+                    <td class="total-value">{{ $totalQty }}</td>
+                </tr>
                 <tr>
                     <td class="total-label">Subtotal (Net)</td>
                     <td class="total-value">£ {{ number_format($totalNet, 2) }}</td>

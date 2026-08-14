@@ -186,17 +186,34 @@ class OrderController extends Controller
     }
     public function productorder($shopid)
     {
+        // $products = Product::with('category')
+        //     ->leftJoin('shop_product_prices', function ($join) use ($shopid) {
+        //         $join->on('shop_product_prices.product_id', '=', 'products.id')
+        //              ->where('shop_product_prices.shop_id', '=', $shopid);
+        //     })
+        //     ->select(
+        //         'products.*',
+        //         DB::raw('COALESCE(shop_product_prices.price, products.price) as effective_price')
+        //     )
+        //     // ->orderBy('model_number', 'asc')
+        //     // ->groupBy('categories_id')
+        //     ->get();
         $products = Product::with('category')
-            ->leftJoin('shop_product_prices', function ($join) use ($shopid) {
-                $join->on('shop_product_prices.product_id', '=', 'products.id')
-                     ->where('shop_product_prices.shop_id', '=', $shopid);
-            })
-            ->select(
-                'products.*',
-                DB::raw('COALESCE(shop_product_prices.price, products.price) as effective_price')
-            )
-            ->get();
-
+    ->leftJoin('shop_product_prices', function ($join) use ($shopid) {
+        $join->on('shop_product_prices.product_id', '=', 'products.id')
+             ->where('shop_product_prices.shop_id', '=', $shopid);
+    })
+    ->select(
+        'products.*',
+        DB::raw('COALESCE(shop_product_prices.price, products.price) as effective_price')
+    )
+    ->orderBy('categories_id', 'asc')
+    ->orderBy('subcategories_id', 'asc')
+    ->orderBy('model_number', 'asc')
+    ->get();
+//             echo "<pre>";
+// print_r($products);
+// exit;
         return view('shops.order', compact('shopid','products'));
     }
 
@@ -368,11 +385,18 @@ public function addProduct(Request $request, $id)
 
     $order   = Order::findOrFail($id);
     $product = Product::findOrFail($data['product_id']);
+    $basePrice = $product->price;
 
+    // Check VAT from product table
+    if ($product->vat === 'yes') {
+        $finalPrice = $basePrice * 1.20; // Add 20% VAT
+    } else {
+        $finalPrice = $basePrice; // No VAT
+    }
     OrderProduct::create([
         'orders_id'     => $order->id,
         'products_id'   => $product->id,
-        'selling_price' => $product->price,
+        'selling_price' => $finalPrice,
         'discount'      => 0,
         'quantity'      => $data['quantity'],
     ]);

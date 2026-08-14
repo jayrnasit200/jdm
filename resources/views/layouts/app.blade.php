@@ -208,15 +208,17 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             // Initialize DataTable
-            $('#myTable').DataTable({
-                pageLength: 10,
-                lengthMenu: [5, 10, 25, 50, 100],
-                order: [[0, 'asc']],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search products..."
-                }
-            });
+            if ($('#myTable').length && !$.fn.DataTable.isDataTable('#myTable')) {
+                $('#myTable').DataTable({
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    order: [[0, 'asc']],
+                    language: {
+                        search: "_INPUT_",
+                        searchPlaceholder: "Search products..."
+                    }
+                });
+            }
 
             // Auto-hide alert
             const alert = document.querySelector('.alert-success');
@@ -226,7 +228,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     </script>
 
-    @stack('scripts')
     @stack('scripts')
 
     <!-- 🌟 Page Loader -->

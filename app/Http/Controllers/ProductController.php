@@ -119,13 +119,32 @@ public function update(Request $request, Product $product)
     return redirect()->route('products.index')->with('success', 'Product updated successfully.');
 }
 
-public function destroy($id)
+    public function destroy($id)
 {
     $product = Product::findOrFail($id);
     $product->delete();
 
     return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
 }
+
+    public function bulkStatus(Request $request)
+    {
+        $data = $request->validate([
+            'ids'    => 'required|array|min:1',
+            'ids.*'  => 'integer|exists:products,id',
+            'status' => 'required|in:enable,disable',
+        ]);
+
+        $count = Product::whereIn('id', $data['ids'])->update([
+            'status' => $data['status'],
+        ]);
+
+        $label = $data['status'] === 'enable' ? 'enabled' : 'disabled';
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', $count.' product(s) '.$label.' successfully.');
+    }
 public function getSubcategories($category_id)
 {
     $subcategories = Subcategory::where('categories_id', $category_id)->get(['id', 'name']);

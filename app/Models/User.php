@@ -56,4 +56,9 @@ class User extends Authenticatable
 {
     return $this->hasOne(UserPermission::class, 'user_id');
 }
+
+    public function shops()
+    {
+        return $this->belongsToMany(Shop::class, 'shop_access', 'seller_id', 'shop_id');
+    }
 }

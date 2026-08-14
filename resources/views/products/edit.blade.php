@@ -78,7 +78,7 @@
                                     <label class="form-label">Current {{ $label }} Image</label>
                                     @if($product->$field)
                                         <div class="mb-2">
-                                            <img src="{{ asset('storage/'.$product->$field) }}" alt="{{ $label }} Image" class="img-thumbnail" width="120">
+                                            <img src="{{ media_url($product->$field) }}" alt="{{ $label }} Image" class="img-thumbnail" width="120">
                                         </div>
                                     @endif
                                     <label class="form-label">Change {{ $label }} Image</label>

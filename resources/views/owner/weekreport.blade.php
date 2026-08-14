@@ -1,13 +1,15 @@
 @extends('layouts.owner')
 
 @section('title', 'This Week Orders')
+@section('page_title', 'This Week')
+@section('page_subtitle', 'Orders report for the selected date range.')
 
 @section('content')
 <div class="container-fluid py-3">
 
     {{-- ===== HEADER ===== --}}
    {{-- ===== HEADER ===== --}}
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
     <div>
         <h4 class="mb-0">Orders Report</h4>
         <small class="text-muted">
@@ -15,9 +17,9 @@
         </small>
     </div>
 
-    <form method="GET" class="d-flex gap-2 align-items-end">
+    <form method="GET" class="d-flex flex-column flex-sm-row gap-2 align-items-sm-end w-100 w-md-auto">
 
-        <div>
+        <div class="flex-grow-1">
             <label class="small text-muted">From</label>
             <input type="date"
                    name="from_date"
@@ -26,7 +28,7 @@
                    onchange="this.form.submit()">
         </div>
 
-        <div>
+        <div class="flex-grow-1">
             <label class="small text-muted">To</label>
             <input type="date"
                    name="to_date"

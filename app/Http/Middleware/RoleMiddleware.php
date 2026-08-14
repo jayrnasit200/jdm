@@ -13,24 +13,22 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, string $role)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect('/login');
         }
 
-        if (Auth::user()->role !== $role) {
-            // Optional redirect logic for mismatched roles
-            switch (Auth::user()->role) {
-                case 'admin':
-                    return redirect()->route('owner.dashboard');
-                case 'seller':
-                    return redirect()->route('seller.dashboard');
-                case 'customer':
-                    return redirect()->route('customer.dashboard');
-                default:
-                    abort(403, 'Unauthorized');
-            }
+        $userRole = Auth::user()->role;
+        $effectiveRole = $userRole === 'admin' ? 'owner' : $userRole;
+
+        if ($effectiveRole === $role) {
+            return $next($request);
         }
 
-        return $next($request);
+        return match ($effectiveRole) {
+            'owner'    => redirect()->route('owner.dashboard'),
+            'seller'   => redirect()->route('seller.dashboard'),
+            'customer' => redirect()->route('customer.dashboard'),
+            default    => abort(403, 'Unauthorized'),
+        };
     }
 }

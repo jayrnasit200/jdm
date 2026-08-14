@@ -8,7 +8,7 @@
     <div class="container-fluid px-0">
 
         {{-- Top KPI Row --}}
-        <div class="row g-3">
+        <div class="row g-3 owner-kpi">
             <div class="col-xl-2 col-md-4 col-6">
                 <div class="card shadow-soft border-0 h-100">
                     <div class="card-body py-3">
@@ -92,14 +92,14 @@
             <div class="col-lg-8">
                 <div class="card shadow-soft border-0 h-100">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-2">
                             <div>
                                 <h6 class="mb-0">Sales Overview</h6>
                                 <small class="text-muted">
                                     Monthly sales trend (last 12 months)
                                 </small>
                             </div>
-                            <span class="badge bg-dark-subtle text-dark small">
+                            <span class="badge bg-dark-subtle text-dark small align-self-start">
                                 Total: £{{ number_format($totalSales ?? 0, 2) }}
                             </span>
                         </div>
@@ -160,9 +160,15 @@
                         <p class="text-muted small mb-3">
                             Quickly jump to the most important owner tools.
                         </p>
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="d-grid d-sm-flex flex-wrap gap-2">
                             <a href="{{ route('owner.sellers.index') }}" class="btn btn-dark btn-sm">
                                 <i class="fa fa-users me-1"></i> Manage Sellers
+                            </a>
+                            <a href="{{ route('owner.shops.index') }}" class="btn btn-outline-dark btn-sm">
+                                <i class="fa fa-building me-1"></i> Shop Access
+                            </a>
+                            <a href="{{ route('owner.products.index', absolute: false) }}" class="btn btn-outline-dark btn-sm">
+                                <i class="fa fa-cube me-1"></i> Manage Products
                             </a>
                             <a href="{{ route('owner.reports.products') }}" class="btn btn-outline-dark btn-sm">
                                 <i class="fa fa-bar-chart me-1"></i> Product Reports
